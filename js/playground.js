@@ -20,29 +20,29 @@
   let term;
   let run = 0;            // Bumped on "Start over" so stale flows stop.
   let busy = false;
-  let session = null;     // This demo session, as shown in live activity.
+  let queued = null;      // A prompt sent from the notch while Claude was busy.
+  let started = 0;
+  let titles = [];        // This task's to-do list, as the panel shows it.
+  const ID = 'api';       // checkout-api in the hover panel.
 
   class Cancelled extends Error {}
   const guard = (id) => { if (id !== run) throw new Cancelled(); };
   const pause = async (id, ms) => { await NG.sleep(ms); guard(id); };
 
-  // MARK: Live activity
+  // MARK: Live activity (checkout-api's row in the hover panel)
 
-  function setSession(state, status, done, step) {
-    session = { ...(session || { project: 'checkout-api', total: 4, started: Date.now() }), state, status };
-    if (done !== undefined) { session.done = done; session.step = step; }
+  function setSession(state, status, done, symbol = 'terminal') {
+    const patch = { state, status, symbol };
+    if (done !== undefined) patch.tasks = state === 'done' ? null : { done, total: titles.length, titles };
+    if (state === 'done') patch.ended = Date.now();
+    NG.panel.update(ID, patch);
   }
 
-  NG.activitySessions = function () {
-    const now = Date.now();
-    const base = d.sessions.map((s) => {
-      if (s.state === 'done') return { ...s, time: NG.formatElapsed(s.finishedAfter) };
-      const done = Math.min(s.total, s.done + Math.floor((now - s.started) / 25000));
-      return { ...s, done, step: done === s.total ? 'Wrapping up' : 'Updating chart options', time: NG.formatElapsed((now - s.started) / 1000) };
-    });
-    const mine = session && { ...session, time: NG.formatElapsed((now - session.started) / 1000) };
-    return mine ? [mine, ...base] : [{ project: 'checkout-api', status: 'Ready for your next message', state: 'idle', time: '' }, ...base];
-  };
+  /// A tool call: shows in the Tools widget and moves the step count and cost.
+  function tool(name, label) {
+    NG.panel.record(ID, name);
+    term.tool(label);
+  }
 
   // MARK: Requests
 
@@ -108,32 +108,37 @@
     setBusy(true);
     try {
       term.user(prompt);
-      setSession('working', 'Thinking…', 0, 'Read the code');
-      session.started = Date.now();
+      started = Date.now();
+      titles = ['Reading the code', task.runStep, task.askStep, `Editing ${file}`];
+      NG.panel.update(ID, { prompt, started, ended: null, steps: 0 });
+      setSession('working', 'Thinking…', 0);
       const stop = term.thinking();
       await pause(id, 900);
       stop();
       await term.claude(`I'll start with ${task.read}.`);
-      term.tool(`Read(${task.read})`);
+      setSession('working', `Reading ${task.read.split('/').pop()}`, 0, 'read');
+      tool('Read', `Read(${task.read})`);
       await pause(id, 450);
       term.result('Read 214 lines');
-      setSession('working', 'Working…', 1, task.runStep);
+      setSession('working', task.runStep, 1);
 
       if (await ask(id, 'permission', task.permission)) {
-        term.tool(`Bash(${task.permission.command})`);
+        setSession('working', task.permission.sub, 1);
+        tool('Bash', `Bash(${task.permission.command})`);
         await pause(id, 700);
         term.result(task.ran);
       } else {
         await term.claude('Okay, I won\'t run that.');
       }
-      setSession('working', 'Working…', 2, task.askStep);
+      setSession('working', task.askStep, 2);
 
       const choice = await ask(id, 'question', task.question);
       await term.claude(`Going with ${choice}.`);
-      setSession('working', `Editing ${file}`, 3, `Edit ${file}`);
+      setSession('working', `Editing ${file}`, 3, 'edit');
 
       if (await ask(id, 'edit', task.edit)) {
-        term.tool(`Edit(${task.edit.sub})`);
+        tool('Edit', `Edit(${task.edit.sub})`);
+        NG.panel.recordFile(ID, 'modified', task.edit.added.length, task.edit.removed.length);
         await pause(id, 400);
         term.result(task.edited);
       } else {
@@ -141,8 +146,8 @@
       }
       await pause(id, 300);
       await term.claude(task.summary);
-      term.dim(`✻ Worked for ${NG.formatElapsed((Date.now() - session.started) / 1000)}`);
-      setSession('done', task.summary, 4, '');
+      term.dim(`✻ Worked for ${NG.formatElapsed((Date.now() - started) / 1000)}`);
+      setSession('done', task.summary, 4);
       finish(id, task.summary);
     } catch (error) {
       if (!(error instanceof Cancelled)) throw error;
@@ -151,6 +156,11 @@
 
   function finish(id, summary) {
     setBusy(false);
+    if (queued) {
+      const next = queued;
+      queued = null;
+      return followUp(next);
+    }
     if (!S().get('replyWhenDone')) {
       if (!S().get('notices')) return;
       NG.island.claim('play', { card: { ...NG.cards.result('Claude finished'), title: 'checkout-api' }, peek: true });
@@ -172,13 +182,16 @@
     setBusy(true);
     try {
       term.user(prompt);
-      setSession('working', 'Thinking…', 3, 'Follow-up');
+      started = Date.now();
+      titles = [];
+      NG.panel.update(ID, { prompt, started, ended: null, tasks: null, steps: 0 });
+      setSession('working', 'Thinking…');
       const stop = term.thinking();
       await pause(id, 800);
       stop();
       const reply = d.followUps[Math.floor(Math.random() * d.followUps.length)];
       await term.claude(reply);
-      setSession('done', reply, 4, '');
+      setSession('done', reply);
       finish(id, reply);
     } catch (error) {
       if (!(error instanceof Cancelled)) throw error;
@@ -197,7 +210,8 @@
 
   function reset() {
     run++;
-    session = null;
+    queued = null;
+    NG.panel.update(ID, { state: 'idle', status: 'Ready for your next message', tasks: null });
     NG.island.release('play');
     setBusy(false);
     term.clear();
@@ -209,6 +223,16 @@
         <span class="switch"><input type="checkbox" data-setting="${key}" ${setting(key) ? 'checked' : ''}><i></i></span>
       </label>`).join('');
   }
+
+  /// A prompt for checkout-api sent from the hover panel.
+  NG.playground = {
+    prompt(text) {
+      if (!term) return;
+      if (busy) { queued = text; NG.toast('Queued. Claude reads it when it finishes'); return; }
+      NG.island.release('play');
+      followUp(text);
+    },
+  };
 
   NG.initPlayground = function () {
     const log = NG.$('#term-log');

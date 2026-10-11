@@ -47,9 +47,31 @@
       },
     },
     activity: {
-      card: () => NG.cards.activity(NG.activitySessions()),
-      lines: () => line('dim', '3 Claude sessions running') + line('claude', 'checkout-api: writing tests') + line('claude', 'dashboard: upgrading charts') + line('claude', 'handbook: done'),
-      live: true,
+      panel: { usageCardShown: false, sessionCardShown: false, toolsCardShown: false, resumeCardShown: false },
+      lines: () => line('dim', '3 Claude sessions running') + line('claude', 'checkout-api: ready for you') + line('claude', 'dashboard: upgrading charts') + line('claude', 'handbook: done')
+        + line('wait', 'Try the ✕ on a finished session, or 💬 to prompt it ↑'),
+    },
+    widgets: {
+      panel: { usageCardShown: true, sessionCardShown: true, toolsCardShown: false, resumeCardShown: false },
+      lines: () => line('dim', '~/checkout-api ❯ /usage') + line('claude', '5-hour limit: 24% used, resets in 2h 14m') + line('claude', 'Weekly limit: 81% used')
+        + line('dim', '  Opus · 62% context · $3.27') + line('wait', 'Or just glance at the notch ↑'),
+    },
+    tools: {
+      panel: { usageCardShown: false, sessionCardShown: false, toolsCardShown: true, resumeCardShown: true },
+      lines: () => line('dim', '~/orders-service ❯ claude --resume') + line('claude', 'Resuming “Add pagination to the orders endpoint”')
+        + line('wait', 'Pick a session chip, or press Resume ↑'),
+    },
+    images: {
+      // The notch stays closed: dragging onto it opens the panel, like on the Mac.
+      idle: true,
+      lines: () => `<div class="sample-drop"><div class="sample-shot" draggable="true" title="Drag me onto the notch"><span></span><i></i><i></i><b>Screenshot.png</b></div>
+        <p>Drag this screenshot (or any image from your desktop) onto the notch, then drop it on a project.</p>
+        <button type="button" class="button button-quiet button-small" data-attach-sample>Attach to checkout-api</button></div>`,
+    },
+    water: {
+      water: true,
+      lines: () => line('dim', '~/checkout-api ❯ # two hours of focus later…') + line('claude', 'All 13 tests pass.')
+        + line('wait', 'Someone\'s dropping by from the notch ↑'),
     },
     done: {
       card: () => NG.cards.done({ ...d.done, note: 'Type a reply and press ⏎.' }),
@@ -62,7 +84,6 @@
 
   let active = null;
   let settleTimer;
-  let liveTimer;
   /// Scenes the visitor already answered: { message, extra }. Answered scenes
   /// never ask again; they show a small "done" pill instead.
   const answered = new Map();
@@ -73,18 +94,44 @@
   function show(name) {
     const scene = scenes[name];
     if (!scene) return;
+    if (active === 'water' && name !== 'water') NG.water.hide();
     active = name;
     clearTimeout(settleTimer);
-    clearInterval(liveTimer);
     const done = answered.get(name);
     const terminal = stage();
     if (terminal) terminal.innerHTML = `<div class="stage-lines">${scene.lines()}</div>`;
+    if (scene.panel) {
+      // Opens the cards this scene is about, as if their header buttons were pressed.
+      Object.entries(scene.panel).forEach(([key, value]) => NG.settings.set(key, value));
+      return NG.island.claim('story', NG.panel.view({ compact: true }));
+    }
+    if (scene.idle) return NG.island.release('story');
+    if (scene.water) {
+      NG.island.release('story');
+      return NG.water.remind();
+    }
     if (done) {
       if (terminal) settleStage(done.extra);
       return NG.island.claim('story', { card: donePill(done.message), peek: true });
     }
     NG.island.claim('story', { card: scene.card(), onAction: (action, detail) => respond(name, action, detail) });
-    if (scene.live) liveTimer = setInterval(() => active === name && NG.island.refresh(scene.card()), 1000);
+  }
+
+  /// The images scene's sample screenshot: drag it onto the notch, or tap to attach.
+  function wireSample() {
+    const terminal = stage();
+    if (!terminal) return;
+    terminal.addEventListener('dragstart', (event) => {
+      if (!event.target.closest('.sample-shot')) return;
+      event.dataTransfer.setData('application/x-notchgate-sample', '1');
+      event.dataTransfer.effectAllowed = 'copy';
+    });
+    terminal.addEventListener('dragend', () => NG.panel.setDragging(false));
+    terminal.addEventListener('click', (event) => {
+      if (!event.target.closest('[data-attach-sample]')) return;
+      NG.panel.attachSample('api');
+      NG.island.claim('story', NG.panel.view({ compact: true }));
+    });
   }
 
   function settleStage(extra) {
@@ -125,11 +172,12 @@
       });
     }, { rootMargin: '-45% 0px -45% 0px' });
     steps.forEach((step) => observer.observe(step));
+    wireSample();
 
     NG.watch(NG.$('#story'), () => {}, () => {
+      if (active === 'water') NG.water.hide();
       active = null;
       clearTimeout(settleTimer);
-      clearInterval(liveTimer);
       steps.forEach((s) => s.classList.remove('is-active'));
       NG.island.release('story');
     }, { threshold: 0 });

@@ -159,7 +159,7 @@
           return;
         }
         const button = event.target.closest('[data-action]');
-        if (button && !button.disabled) return this.act(button.dataset.action, { selection: this.selection });
+        if (button && !button.disabled) return this.act(button.dataset.action, { selection: this.selection, target: button });
         // Touch screens have no hover: tapping an idle notch toggles live activity.
         if (this.root.dataset.state !== 'open') {
           this.openedByTap = !this.hovering;
@@ -169,15 +169,17 @@
 
       this.root.addEventListener('input', (event) => {
         const form = event.target.closest('[data-composer]');
-        if (form) NG.$('button', form).disabled = !event.target.value.trim();
+        const send = form && NG.$('.send', form);
+        if (send) send.disabled = !event.target.value.trim();
       });
       this.root.addEventListener('submit', (event) => {
         const form = event.target.closest('[data-composer]');
         if (!form) return;
         event.preventDefault();
-        const input = NG.$('input', form);
+        const input = NG.$('input[type="text"], input:not([type])', form);
         const value = input.value.trim();
-        if (value) this.act('send', { value });
+        // The hover panel's prompt boxes can send images with no text.
+        if (value || NG.$('.ap-thumb', form)) this.act('send', { value, form });
       });
 
       this.root.addEventListener('mouseenter', () => this.setHovering(true));
@@ -186,7 +188,8 @@
         this.leaveTimer = setTimeout(() => this.setHovering(false), 280);
       });
       document.addEventListener('click', (event) => {
-        if (this.hovering && !this.root.contains(event.target)) this.setHovering(false);
+        // composedPath, not contains(): a click that re-rendered the panel leaves its target detached.
+        if (this.hovering && !event.composedPath().includes(this.root)) this.setHovering(false);
       });
 
       // Activity opened by a tap closes once the visitor scrolls on.

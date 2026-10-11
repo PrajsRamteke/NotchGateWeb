@@ -24,6 +24,8 @@
   <link rel="stylesheet" href="css/menu.css">
   <link rel="stylesheet" href="css/island.css">
   <link rel="stylesheet" href="css/cards.css">
+  <link rel="stylesheet" href="css/panel.css">
+  <link rel="stylesheet" href="css/water.css">
   <link rel="stylesheet" href="css/hero.css">
   <link rel="stylesheet" href="css/story.css">
   <link rel="stylesheet" href="css/playground.css">
@@ -71,7 +73,7 @@
   <main id="main">
     <section class="hero" id="top">
       <h1 class="hero-title">Claude Code,<br>right at your notch.</h1>
-      <p class="hero-sub">Approve, answer and prompt Claude from the top of your screen. Never switch back to the terminal.</p>
+      <p class="hero-sub">Approve, answer and prompt Claude from the top of your screen. Watch every session, its tools and your limits. Never switch back to the terminal.</p>
       <div class="hero-actions">
         <a class="button button-primary" href="#install">Install NotchGate</a>
         <a class="button button-quiet" href="#try">Try it here</a>
@@ -99,14 +101,30 @@
         </article>
         <article class="story-step" data-scene="activity">
           <h2>Every session, one glance.</h2>
-          <p>Hover the notch to see what each project is doing and how far along it is.</p>
+          <p>Hover the notch to see what each project is doing, how far along it is and which files it touched. Prompt any of them, or clear a finished one with ✕.</p>
+        </article>
+        <article class="story-step" data-scene="widgets">
+          <h2>Know your limits.</h2>
+          <p>Your 5-hour and weekly usage, plus each session's model, context and cost, one hover away.</p>
+        </article>
+        <article class="story-step" data-scene="tools">
+          <h2>Every tool call, counted.</h2>
+          <p>See which tools Claude reached for in the last hour, and jump back into a recent session in one click.</p>
         </article>
         <article class="story-step" data-scene="done">
           <h2>Send the next prompt from up there.</h2>
           <p>When Claude finishes, reply from the notch. It lands in Claude Code as a real prompt.</p>
         </article>
+        <article class="story-step" data-scene="images">
+          <h2>Drop a screenshot on it.</h2>
+          <p>Drag an image onto the notch and drop it on the project you mean, or paste it with <kbd>⌘V</kbd>. Claude gets it with your prompt.</p>
+        </article>
+        <article class="story-step" data-scene="water">
+          <h2>And drink some water.</h2>
+          <p>A little bot drops from the notch with a bottle. Hover it to log a glass or snooze it. Poke it, too.</p>
+        </article>
       </div>
-      <div class="story-stage" aria-hidden="true">
+      <div class="story-stage">
         <div class="stage-terminal" id="stage-terminal"></div>
       </div>
     </section>
@@ -153,7 +171,7 @@
         <li>Restart your Claude Code sessions.</li>
         <li>Look up at the notch.</li>
       </ol>
-      <p class="install-req">Needs macOS 14 or later, Claude Code, and Apple's Command Line Tools.</p>
+      <p class="install-req">Needs macOS 14 or later (Apple silicon or Intel) and Claude Code. Running it again updates NotchGate.</p>
       <a class="button button-quiet" href="https://github.com/PrajsRamteke/NotchGate" target="_blank" rel="noopener">
         Star NotchGate on GitHub <span class="star-count" data-star-count hidden></span>
       </a>
@@ -172,6 +190,8 @@
   <script src="js/demo-data.js" defer></script>
   <script src="js/cards.js" defer></script>
   <script src="js/island.js" defer></script>
+  <script src="js/panel.js" defer></script>
+  <script src="js/water.js" defer></script>
   <script src="js/story.js" defer></script>
   <script src="js/terminal.js" defer></script>
   <script src="js/playground.js" defer></script>

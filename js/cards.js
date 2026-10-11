@@ -90,23 +90,6 @@
       };
     },
 
-    activity(sessions) {
-      const rows = sessions.map((s) => {
-        const progress = s.total
-          ? `<div class="progress"><i style="width:${Math.round((s.done / s.total) * 100)}%"></i></div>
-             <div class="progress-label">${s.done} of ${s.total}${s.step ? ` · ${e(s.step)}` : ''}</div>`
-          : '';
-        return `<div class="session">
-          <div class="session-top"><span class="session-dot is-${s.state}"></span><b>${e(s.project)}</b><span class="time">${e(s.time || '')}</span></div>
-          <div class="session-status ${s.state === 'waiting' ? 'is-waiting' : ''}">${e(s.status)}</div>${progress}</div>`;
-      }).join('');
-      return {
-        title: 'Claude',
-        live: sessions.some((s) => s.state === 'working'),
-        html: `<div class="card">${head('Live activity', `${sessions.length} sessions`)}<div class="sessions">${rows}</div></div>`,
-      };
-    },
-
     result(text) {
       return { title: 'NotchGate', html: `<div class="card"><div class="ok-line">✓ ${e(text)}</div></div>` };
     },

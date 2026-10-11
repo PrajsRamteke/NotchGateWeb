@@ -28,6 +28,7 @@
   --island-hairline: rgba(255, 255, 255, 0.09);
   --ok: #6cc49a;
   --danger: #e5675b;
+  --warning: #e9b45a;
 
   --serif: "Newsreader", "New York", ui-serif, Georgia, serif;
   --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;

@@ -14,11 +14,27 @@
     askRisky: true,
     autoExpand: true,
     liveActivity: true,
-    quickSettings: false,
+    quickSettings: true,
     sound: false,
     notices: true,
     checkUpdates: true,
     launchAtLogin: true,
+
+    // Widgets: a switch each in the menu, and a card toggled from the panel header.
+    usageWidget: true,
+    usageCardShown: false,
+    sessionWidget: true,
+    sessionCardShown: true,
+    toolsWidget: true,
+    toolsCardShown: false,
+    resumeWidget: true,
+    resumeCardShown: true,
+
+    // Extras
+    waterReminder: true,
+    waterMinutes: 15,
+    waterSnooze: 10,
+    waterGoal: 8,
   };
 
   const values = { ...defaults };

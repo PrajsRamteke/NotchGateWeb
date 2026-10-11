@@ -75,6 +75,34 @@
 .stage-lines > *:nth-child(5) { animation-delay: 0.32s; }
 @keyframes line-in { from { opacity: 0; transform: translateY(6px); } }
 
+/* Images scene: a screenshot to drag onto the notch. */
+.sample-drop { display: grid; justify-items: start; gap: 14px; padding-top: 6px; font-family: var(--sans); }
+.sample-drop p { color: var(--terminal-dim); font-size: 0.9rem; max-width: 34ch; }
+.sample-shot {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  width: 210px;
+  height: 128px;
+  padding: 22px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f0a35e, #e5675b);
+  box-shadow: 0 14px 30px -12px rgba(229, 103, 91, 0.7);
+  cursor: grab;
+  transform: rotate(-3deg);
+  transition: transform 0.3s var(--spring), box-shadow 0.3s ease;
+  animation: shot-nudge 2.6s ease-in-out infinite;
+}
+.sample-shot:hover { transform: rotate(0) scale(1.03); animation: none; }
+.sample-shot:active { cursor: grabbing; }
+.sample-shot span { width: 60%; height: 11px; border-radius: 4px; background: rgba(255, 255, 255, 0.92); }
+.sample-shot i { height: 7px; border-radius: 3px; background: rgba(255, 255, 255, 0.7); }
+.sample-shot i + i { width: 80%; }
+.sample-shot b { position: absolute; left: 0; right: 0; bottom: -22px; color: var(--terminal-dim); font-size: 0.78rem; font-weight: 500; text-align: center; }
+@keyframes shot-nudge { 50% { transform: rotate(-3deg) translateY(-6px); } }
+.sample-drop .button { margin-top: 18px; }
+
 @media (max-width: 860px) {
   .story { grid-template-columns: 1fr; }
   .story-stage { display: none; }

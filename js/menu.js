@@ -41,17 +41,35 @@
         <button type="button" data-mode="notch">Notch</button><button type="button" data-mode="terminal">Terminal</button><button type="button" data-mode="off">Don't ask</button>
       </div>
       <p class="pm-note" data-mode-note></p>`)}
+    ${section('widgets', 'Widgets', `
+      ${toggle('usageWidget', 'Usage', '5-hour and weekly limits, and when they reset', { preview: 'usageCardShown' })}
+      ${toggle('sessionWidget', 'Session', 'Model, context used, cost and git branch', { preview: 'sessionCardShown' })}
+      ${toggle('toolsWidget', 'Tool activity', 'Bash, Edit, Read… calls per session, and a heat strip of the last hour', { preview: 'toolsCardShown' })}
+      ${toggle('resumeWidget', 'Resume', 'Pick up a recent session or start a new one in Terminal', { preview: 'resumeCardShown' })}
+      <p class="pm-note">Usage and Session read Claude Code's status line; yours still shows as before. Open each card from its button in the notch's hover panel.</p>`)}
+    ${section('extras', 'Extras', `
+      ${toggle('waterReminder', 'Water reminder', 'A little bot drops from the notch with a bottle', { preview: 'water' })}
+      <div class="pm-water" data-water>
+        <div class="pm-stepper"><span>Remind every</span><b data-value="waterMinutes"></b>
+          <button type="button" data-step="waterMinutes" data-delta="-5" aria-label="Remind less often">−</button><button type="button" data-step="waterMinutes" data-delta="5" aria-label="Remind more often">+</button></div>
+        <div class="pm-stepper"><span>Daily goal</span><b data-value="waterGoal"></b>
+          <button type="button" data-step="waterGoal" data-delta="-1" aria-label="Fewer glasses">−</button><button type="button" data-step="waterGoal" data-delta="1" aria-label="More glasses">+</button></div>
+        <div class="pm-stepper"><span>Snooze for</span>
+          <div class="pm-segmented is-compact" role="group" aria-label="Snooze for">${[5, 10, 15, 30].map((m) => `<button type="button" data-snooze="${m}">${m}m</button>`).join('')}</div></div>
+        <p class="pm-note" data-water-note></p>
+      </div>`)}
     ${section('behavior', 'Behavior', `
       ${toggle('autoExpand', 'Expand automatically', 'Open the full card as soon as Claude asks')}
       ${toggle('liveActivity', 'Live activity on hover', 'Hover the notch to see every session')}
+      ${toggle('quickSettings', 'Quick settings in the notch', 'Auto-allow and questions, under the sessions')}
       ${toggle('sound', 'Play a sound', 'A soft chime for new requests')}
       ${toggle('notices', 'Finished notices', 'A brief note when a task ends')}
       ${toggle('checkUpdates', 'Check for updates', 'Looks for a newer NotchGate on GitHub')}
-      ${toggle('launchAtLogin', 'Launch at login')}`)}
+      ${toggle('launchAtLogin', 'Launch at login', 'On by default; NotchGate starts with your Mac')}`)}
     ${section('shortcuts', 'Shortcuts', `
       <p class="pm-note">These work anywhere while a request is waiting.</p>
       <div class="pm-keys"><kbd>⌃⌥⏎</kbd><span>Allow or approve</span><kbd>⌃⌥⌫</kbd><span>Deny or reject</span><kbd>⌃⌥Space</kbd><span>Show or hide the card</span></div>`)}
-    <div class="pm-foot"><span>Version 1.0.0, up to date</span><button class="pm-button" type="button" data-close>Close menu</button></div>`;
+    <div class="pm-foot"><span>Version 2.1.0, up to date</span><button class="pm-button" type="button" data-close>Close menu</button></div>`;
 
   const modeNotes = {
     notch: 'Answer Claude\'s questions from the notch.',
@@ -81,10 +99,37 @@
     NG.$('[data-summary="show"]', menu).textContent = `${shown} of 5 on`;
     NG.$('[data-summary="permissions"]', menu).textContent = `Auto-allow ${S().get('autoAllow') ? 'on' : 'off'}`;
     NG.$('[data-summary="shortcuts"]', menu).textContent = '⌃⌥⏎  ⌃⌥⌫';
+    const widgets = ['usageWidget', 'sessionWidget', 'toolsWidget', 'resumeWidget'].filter(read).length;
+    NG.$('[data-summary="widgets"]', menu).textContent = `${widgets} of 4 on`;
+    NG.$('[data-summary="extras"]', menu).textContent = `${S().get('waterReminder') ? 1 : 0} of 1 on`;
+    NG.$('[data-water]', menu).hidden = !S().get('waterReminder');
+    NG.$('[data-value="waterMinutes"]', menu).textContent = NG.water.formatMinutes(S().get('waterMinutes'));
+    NG.$('[data-value="waterGoal"]', menu).textContent = `${S().get('waterGoal')} glasses`;
+    NG.$$('[data-snooze]', menu).forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.snooze) === S().get('waterSnooze'))));
+    NG.$('[data-water-note]', menu).textContent = `${NG.water.glasses} of ${S().get('waterGoal')} glasses today. Waits while you're away from the Mac.`;
   }
+
+  /// Opens one widget's card in the hover panel, until the next click elsewhere.
+  function previewPanel(card) {
+    const widget = { usageCardShown: 'usageWidget', sessionCardShown: 'sessionWidget', toolsCardShown: 'toolsWidget', resumeCardShown: 'resumeWidget' }[card];
+    S().set(widget, true);
+    S().set(card, true);
+    NG.island.claim('preview', NG.panel.view());
+    const release = (event) => {
+      if (event.composedPath().includes(NG.island.root)) return;
+      document.removeEventListener('click', release);
+      NG.island.release('preview');
+    };
+    setTimeout(() => document.addEventListener('click', release));
+    if (window.innerWidth < 900) close();
+  }
+
+  const steps = { waterMinutes: [5, 240], waterGoal: [1, 20] };
 
   /// Shows one card in the notch, answerable, then hands the notch back.
   function preview(kind) {
+    if (kind === 'water') { if (window.innerWidth < 900) close(); return NG.water.remind(); }
+    if (kind.endsWith('CardShown')) return previewPanel(kind);
     const card = NG.cards[kind]({ ...NG.demo[kind], project: 'checkout-api' });
     NG.island.claim('preview', {
       card,
@@ -127,6 +172,13 @@
       event.stopPropagation();
       const previewButton = event.target.closest('[data-preview]');
       if (previewButton) { event.preventDefault(); return preview(previewButton.dataset.preview); }
+      const step = event.target.closest('[data-step]');
+      if (step) {
+        const [min, max] = steps[step.dataset.step];
+        return S().set(step.dataset.step, Math.min(max, Math.max(min, S().get(step.dataset.step) + Number(step.dataset.delta))));
+      }
+      const snooze = event.target.closest('[data-snooze]');
+      if (snooze) return S().set('waterSnooze', Number(snooze.dataset.snooze));
       const mode = event.target.closest('[data-mode]');
       if (mode) return S().set('questionMode', mode.dataset.mode);
       if (event.target.closest('[data-demo]')) return NG.toast('This menu is a live preview of the app');

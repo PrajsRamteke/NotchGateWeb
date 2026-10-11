@@ -41,23 +41,20 @@
     NG.island.hoverView = () => {
       if (introPending()) return introView();
       if (!NG.settings.get('liveActivity')) return null;
-      return { card: NG.cards.activity(NG.activitySessions()), isActivity: true, onAction() {} };
+      return NG.panel.view();
     };
 
-    let timer;
+    // The panel keeps itself up to date (see panel.js).
     document.addEventListener('ng:hover', (event) => {
-      clearInterval(timer);
-      if (!event.detail) return;
-      NG.$('.hero-hint')?.classList.add('is-gone');
-      timer = setInterval(() => {
-        if (NG.island.showingActivity) NG.island.refresh(NG.cards.activity(NG.activitySessions()));
-      }, 1000);
+      if (event.detail) NG.$('.hero-hint')?.classList.add('is-gone');
     });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     NG.initTheme();
     NG.initIsland();
+    NG.initPanel();
+    NG.initWater();
     NG.initHeader();
     NG.initMenu();
     NG.initPlayground();

@@ -122,18 +122,7 @@
 .note { color: var(--island-faint); font-size: 11.5px; }
 .ok-line { display: flex; align-items: center; gap: 8px; color: var(--ok); font-size: 13px; font-weight: 500; }
 
-/* Live activity */
-.sessions { display: grid; gap: 8px; }
-.session { padding: 12px; border-radius: 14px; background: var(--island-surface); border: 0.5px solid var(--island-hairline); display: grid; gap: 7px; }
-.session-top { display: flex; align-items: center; gap: 8px; }
-.session-top b { font-size: 13.5px; }
-.session-top .time { margin-left: auto; color: var(--island-faint); font-size: 11.5px; font-variant-numeric: tabular-nums; }
-.session-status { color: var(--island-dim); }
-.session-status.is-waiting { color: #ef9f80; }
-.session-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--island-faint); }
-.session-dot.is-working { background: var(--clay); box-shadow: 0 0 10px var(--clay); animation: spark-breathe 1.4s ease-in-out infinite; }
-.session-dot.is-done { background: var(--ok); }
-.session-dot.is-waiting { background: transparent; border: 2px solid var(--clay); }
+/* Task progress (session rows in the hover panel) */
 .progress { height: 4px; border-radius: 99px; background: var(--island-hairline); overflow: hidden; }
 .progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--clay-deep), var(--clay)); transition: width 0.8s var(--ease-out); }
 .progress-label { color: var(--island-faint); font-size: 11.5px; }

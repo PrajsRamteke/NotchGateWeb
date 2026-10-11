@@ -26,11 +26,13 @@ Any static host works: upload the `notchgateweb/` folder as-is
 | `css/island.css`, `css/cards.css` | The live notch and its cards |
 | `css/*.css` | One file per section (hero, story, playground, details, install) |
 | `js/island.js` | The notch: animation, hover activity, shortcuts |
+| `js/panel.js`, `css/panel.css` | The hover panel: sessions (file changes, usage, reply, open, ✕ dismiss), the Usage / Sessions / Tools / Resume widgets, image drag-and-drop and paste, quick settings |
+| `js/water.js`, `css/water.css` | The water reminder bot from Extras |
 | `js/menu.js`, `css/menu.css` | The NotchGate menu from the header's ✦ icon, with live previews |
 | `js/settings.js` | Shared settings behind the menu and the playground |
 | `js/header.js` | Frosted header and current-section highlight |
-| `js/cards.js` | Card templates (permission, edit, question, plan, done, activity) |
-| `js/story.js` | Scroll story that drives the notch |
+| `js/cards.js` | Card templates (permission, edit, question, plan, done) |
+| `js/story.js` | Scroll story that drives the notch (requests, sessions, widgets, images, water) |
 | `js/playground.js`, `js/terminal.js` | The pretend Claude Code session |
 | `js/details.js`, `js/install.js` | Interactive tiles, copy button, GitHub stars |
 | `js/demo-data.js` | All dummy content |
