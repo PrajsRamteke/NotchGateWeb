@@ -1,0 +1,130 @@
+/* The live notch. JS sets --w / --h; CSS springs the shape between them. */
+.island {
+  --w: var(--notch-width);
+  --h: var(--notch-height);
+  --r: 14px;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 50;
+  width: var(--w);
+  height: var(--h);
+  transform: translateX(-50%);
+  background: var(--island);
+  color: var(--island-ink);
+  border-radius: 0 0 var(--r) var(--r);
+  overflow: hidden;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.4;
+  transition:
+    width 0.55s var(--spring),
+    height 0.55s var(--spring),
+    border-radius 0.55s var(--ease-out),
+    box-shadow 0.4s ease;
+  -webkit-font-smoothing: antialiased;
+}
+.island[data-state="peek"] { --r: 16px; }
+.island[data-state="open"] { --r: 30px; box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.55); }
+
+/* A faint clay glow from the lower-left while Claude is waiting. */
+.island::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(260px 200px at 6% 100%, rgba(217, 119, 87, 0.16), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.island[data-waiting]::after { opacity: 1; }
+
+/* Concave flares that melt into the menu bar, like the hardware notch. */
+.island-flare {
+  position: fixed;
+  top: 0;
+  z-index: 50;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  background: radial-gradient(circle at 0 100%, transparent 9.5px, var(--island) 10px);
+  transition: left 0.55s var(--spring);
+}
+.island-flare.is-right { transform: scaleX(-1); }
+
+.island-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--notch-height);
+  padding: 0 14px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.island:not([data-state="idle"]) .island-bar { opacity: 1; transition-delay: 0.12s; }
+
+.island-spark {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  background: var(--clay);
+  -webkit-mask: var(--spark-mask) center / contain no-repeat;
+  mask: var(--spark-mask) center / contain no-repeat;
+}
+.island[data-live] .island-spark { animation: spark-turn 7s linear infinite, spark-breathe 1.8s ease-in-out infinite; }
+@keyframes spark-turn { to { rotate: 360deg; } }
+@keyframes spark-breathe { 50% { scale: 1.12; } }
+
+.island-title {
+  flex: 1;
+  min-width: 0;
+  color: var(--island-dim);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.island[data-state="peek"] .island-title { text-align: left; }
+
+.island-badge {
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--clay);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 19px;
+  text-align: center;
+}
+
+.island-body {
+  position: relative;
+  z-index: 1;
+  padding: 6px 20px 20px;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top center;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.island[data-state="open"] .island-body.is-shown {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.3s ease 0.12s, transform 0.45s var(--spring) 0.08s;
+}
+
+/* Gentle hint that the notch is interactive. */
+.island[data-state="idle"]:hover { --w: calc(var(--notch-width) + 12px); }
+
+@media (max-width: 520px) {
+  .island-body { padding: 4px 16px 16px; }
+}
+
+/* On a black page the island needs a hairline rim to keep its shape. */
+:root[data-theme="dark"] .island:not([data-state="idle"]) {
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.14), 0 24px 60px -18px rgba(0, 0, 0, 0.9);
+}

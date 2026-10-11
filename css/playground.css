@@ -1,0 +1,119 @@
+.playground { padding: 140px clamp(16px, 4vw, 48px) 80px; }
+
+.desk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.window {
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-lift);
+  overflow: hidden;
+}
+
+.window-chrome {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface-2);
+}
+.traffic { position: absolute; left: 14px; display: flex; gap: 8px; }
+.traffic i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
+.traffic i:nth-child(2) { background: #febc2e; }
+.traffic i:nth-child(3) { background: #28c840; }
+.window-title { color: var(--graphite); font-size: 0.8rem; font-weight: 500; }
+
+/* Claude Code TUI look-alike */
+.terminal { display: grid; grid-template-rows: auto 1fr auto auto; height: 560px; background: var(--terminal-bg); }
+.terminal-scroll {
+  padding: 18px 20px 8px;
+  overflow-y: auto;
+  font: 13px/1.65 var(--mono);
+  color: var(--terminal-ink);
+  scroll-behavior: smooth;
+}
+.t-line { white-space: pre-wrap; word-break: break-word; animation: line-in 0.3s var(--ease-out) both; }
+.t-dim { color: var(--terminal-dim); }
+.t-user { margin: 10px 0 6px; padding: 6px 10px; border-radius: 8px; background: var(--surface-2); font-weight: 600; }
+.t-user::before { content: "❯ "; color: var(--clay); }
+.t-claude::before { content: "⏺ "; color: var(--clay); }
+.t-tool { color: var(--terminal-ink); }
+.t-tool::before { content: "⏺ "; color: var(--ok); }
+.t-result { padding-left: 22px; color: var(--terminal-dim); }
+.t-result::before { content: "⎿  "; }
+.t-wait { color: var(--clay); }
+.t-ok { color: var(--ok); }
+.t-welcome {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--clay);
+  border-radius: 10px;
+  color: var(--terminal-dim);
+}
+.t-welcome b { color: var(--terminal-ink); font-weight: 600; }
+.t-welcome b::before { content: "✻ "; color: var(--clay); }
+
+/* Inline terminal dialog for requests the notch is set to ignore. */
+.t-dialog { margin: 8px 0; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: 10px; display: grid; gap: 4px; }
+.t-dialog button { justify-self: start; border: 0; background: none; padding: 2px 4px; color: var(--terminal-ink); font: inherit; cursor: pointer; border-radius: 5px; }
+.t-dialog button:hover, .t-dialog button:focus-visible { background: var(--clay-soft); color: var(--clay); }
+.t-dialog button::before { content: "  "; }
+.t-dialog button:first-of-type::before { content: "❯ "; color: var(--clay); }
+
+.terminal-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 16px 10px;
+  padding: 0 14px;
+  height: 44px;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  font-family: var(--mono);
+}
+.terminal-input:focus-within { border-color: var(--clay); }
+.prompt-glyph { color: var(--clay); }
+.terminal-input input { flex: 1; border: 0; background: none; color: var(--terminal-ink); font: 13px var(--mono); outline: none; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 16px; }
+.chip {
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--ink);
+  font: 0.82rem var(--sans);
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--clay); color: var(--clay); }
+.chip[disabled] { opacity: 0.4; pointer-events: none; }
+
+/* Settings window */
+.settings { padding: 18px 18px 20px; align-self: start; display: grid; gap: 4px; }
+.settings h3 { font: 600 0.82rem var(--sans); color: var(--graphite); margin-bottom: 6px; }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--hairline); }
+.setting:last-of-type { border-bottom: 0; }
+.setting span { font-size: 0.92rem; }
+.setting small { display: block; color: var(--graphite); font-size: 0.76rem; }
+.settings .button { margin-top: 10px; justify-self: start; }
+
+.switch { position: relative; width: 38px; height: 22px; flex: none; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+.switch i { position: absolute; inset: 0; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--hairline); transition: background-color 0.2s ease; }
+.switch i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform 0.25s var(--spring); }
+.switch input:checked + i { background: var(--clay); }
+.switch input:checked + i::after { transform: translateX(16px); }
+.switch input:focus-visible + i { outline: 2px solid var(--clay); outline-offset: 2px; }
+
+@media (max-width: 860px) {
+  .desk { grid-template-columns: 1fr; }
+  .terminal { height: 480px; }
+}

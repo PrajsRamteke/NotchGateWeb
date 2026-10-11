@@ -1,0 +1,139 @@
+/* Card contents inside the island: the same visual language as the app. */
+.card { display: grid; gap: 14px; }
+
+.card-head { display: flex; align-items: center; gap: 8px; color: var(--island-faint); font-size: 11.5px; }
+.card-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--clay-soft);
+  color: var(--clay);
+  font-size: 11px;
+  font-weight: 600;
+}
+.card-head .grow { flex: 1; }
+
+.card-title { font-family: var(--serif); font-size: 21px; line-height: 1.15; letter-spacing: -0.01em; color: var(--island-ink); }
+.card-sub { margin-top: 3px; color: var(--island-dim); font-size: 13px; }
+
+.code {
+  margin: 0;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid var(--island-hairline);
+  font: 12px/1.55 var(--mono);
+  color: rgba(245, 243, 236, 0.92);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.code .prompt { color: var(--clay); margin-right: 8px; }
+
+.diff { border-radius: 12px; overflow: hidden; border: 0.5px solid var(--island-hairline); font: 12px/1.6 var(--mono); }
+.diff div { padding: 1px 12px; white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+.diff .del { background: rgba(229, 103, 91, 0.16); }
+.diff .add { background: rgba(108, 196, 154, 0.16); }
+.diff .del::before { content: "− "; color: var(--danger); }
+.diff .add::before { content: "+ "; color: var(--ok); }
+
+.actions { display: flex; align-items: center; gap: 8px; }
+.actions .grow { flex: 1; }
+.link { border: 0; background: none; padding: 0; color: var(--island-faint); font: inherit; font-size: 12px; cursor: pointer; }
+.link:hover { color: var(--island-ink); }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border: 0.5px solid var(--island-hairline);
+  border-radius: 999px;
+  background: var(--island-surface);
+  color: var(--island-ink);
+  font: 600 12.5px var(--sans);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.2s var(--spring), color 0.15s ease;
+}
+.pill:hover { background: var(--island-raised); }
+.pill:active { transform: scale(0.96); }
+.pill.is-danger:hover { color: var(--danger); background: rgba(229, 103, 91, 0.12); }
+.pill.is-primary { background: linear-gradient(var(--clay), var(--clay-deep)); border-color: rgba(255, 255, 255, 0.18); box-shadow: 0 4px 16px -4px rgba(217, 119, 87, 0.6); }
+.pill.is-primary:hover { filter: brightness(1.08); }
+.pill[disabled] { opacity: 0.4; cursor: default; }
+.key { padding: 1px 5px; border-radius: 4px; background: rgba(255, 255, 255, 0.12); font-size: 10px; }
+
+.options { display: grid; gap: 6px; }
+.option {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border: 0.5px solid var(--island-hairline);
+  border-radius: 12px;
+  background: var(--island-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.option:hover { background: var(--island-raised); }
+.option[aria-pressed="true"] { background: rgba(217, 119, 87, 0.14); border-color: rgba(217, 119, 87, 0.55); }
+.option .dot { width: 15px; height: 15px; margin-top: 2px; border-radius: 50%; border: 1.3px solid var(--island-faint); }
+.option[aria-pressed="true"] .dot { border-color: var(--clay); background: radial-gradient(circle, var(--clay) 3.5px, transparent 4px); }
+.option b { display: block; font-weight: 600; }
+.option small { color: var(--island-dim); font-size: 11.5px; }
+
+.plan { padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); border: 0.5px solid var(--island-hairline); }
+.plan h4 { margin: 0 0 6px; font: 400 17px var(--serif); }
+.plan ol { margin: 0; padding-left: 18px; color: var(--island-dim); display: grid; gap: 3px; }
+.plan li::marker { color: var(--clay); }
+
+.composer { display: flex; align-items: flex-end; gap: 8px; }
+.composer input {
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 0.5px solid var(--island-hairline);
+  background: var(--island-surface);
+  color: var(--island-ink);
+  font: 13px var(--sans);
+  outline: none;
+}
+.composer input:focus { border-color: rgba(217, 119, 87, 0.7); box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.18); }
+.send {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 3px;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(var(--clay), var(--clay-deep));
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.send[disabled] { background: var(--island-surface); color: var(--island-faint); cursor: default; }
+
+.note { color: var(--island-faint); font-size: 11.5px; }
+.ok-line { display: flex; align-items: center; gap: 8px; color: var(--ok); font-size: 13px; font-weight: 500; }
+
+/* Live activity */
+.sessions { display: grid; gap: 8px; }
+.session { padding: 12px; border-radius: 14px; background: var(--island-surface); border: 0.5px solid var(--island-hairline); display: grid; gap: 7px; }
+.session-top { display: flex; align-items: center; gap: 8px; }
+.session-top b { font-size: 13.5px; }
+.session-top .time { margin-left: auto; color: var(--island-faint); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.session-status { color: var(--island-dim); }
+.session-status.is-waiting { color: #ef9f80; }
+.session-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--island-faint); }
+.session-dot.is-working { background: var(--clay); box-shadow: 0 0 10px var(--clay); animation: spark-breathe 1.4s ease-in-out infinite; }
+.session-dot.is-done { background: var(--ok); }
+.session-dot.is-waiting { background: transparent; border: 2px solid var(--clay); }
+.progress { height: 4px; border-radius: 99px; background: var(--island-hairline); overflow: hidden; }
+.progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--clay-deep), var(--clay)); transition: width 0.8s var(--ease-out); }
+.progress-label { color: var(--island-faint); font-size: 11.5px; }

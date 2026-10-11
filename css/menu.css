@@ -1,0 +1,119 @@
+/* The NotchGate menu-bar popover, recreated from the app. */
+.ng-menu {
+  position: fixed;
+  top: calc(var(--menubar-height) + 6px);
+  right: clamp(8px, 2vw, 18px);
+  z-index: 45;
+  width: 336px;
+  max-height: calc(100svh - var(--menubar-height) - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 16px 12px;
+  border-radius: 16px;
+  background: rgba(250, 250, 252, 0.8);
+  backdrop-filter: saturate(180%) blur(30px);
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  border: 1px solid var(--hairline);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.35), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  font-size: 0.84rem;
+  transform-origin: top right;
+  animation: menu-in 0.22s var(--ease-out);
+  scrollbar-width: thin;
+}
+:root[data-theme="dark"] .ng-menu {
+  background: rgba(30, 30, 32, 0.78);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.9), 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+}
+.ng-menu[hidden] { display: none; }
+@keyframes menu-in { from { opacity: 0; transform: scale(0.96) translateY(-4px); } }
+
+.pm-head { display: flex; align-items: center; gap: 12px; padding: 2px 2px 12px; border-bottom: 1px solid var(--hairline); }
+.pm-head img { width: 30px; height: 30px; }
+.pm-head b { display: block; font: 500 1.1rem var(--serif); }
+.pm-head small { color: var(--graphite); }
+
+.pm-section { border-bottom: 1px solid var(--hairline); }
+.pm-section > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 2px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--graphite);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.pm-section > summary::-webkit-details-marker { display: none; }
+.pm-section > summary .pm-summary { margin-left: auto; font-size: 0.78rem; font-weight: 500; letter-spacing: 0; color: var(--graphite); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pm-section[open] > summary .pm-summary { display: none; }
+.pm-section > summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-left: auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+.pm-section[open] > summary::after { transform: rotate(45deg); }
+.pm-section:has(.pm-summary):not([open]) > summary::after { margin-left: 8px; }
+.pm-section > summary:hover { color: var(--ink); }
+.pm-body { display: grid; gap: 2px; padding: 0 2px 12px; }
+
+.pm-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+.pm-row.is-indented { padding-left: 16px; }
+.pm-row[aria-disabled="true"] .pm-text { opacity: 0.45; }
+.pm-text { flex: 1; min-width: 0; }
+.pm-text span { display: block; color: var(--ink); font-size: 0.88rem; }
+.pm-text small { display: block; color: var(--graphite); font-size: 0.76rem; }
+.pm-note { color: var(--graphite); font-size: 0.76rem; line-height: 1.4; padding: 2px 0 4px; }
+
+.pm-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
+.pm-button {
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 0.8rem var(--sans);
+  cursor: pointer;
+}
+.pm-button:hover { background: var(--surface-2); }
+
+.pm-preview {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--graphite);
+  cursor: pointer;
+}
+.pm-preview:hover { color: var(--clay); background: var(--clay-soft); }
+.pm-preview svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+
+.pm-segmented { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; margin: 4px 0; border-radius: 9px; background: var(--surface-2); }
+.pm-segmented button { height: 26px; border: 0; border-radius: 7px; background: transparent; color: var(--ink); font: 500 0.8rem var(--sans); cursor: pointer; }
+.pm-segmented button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+
+.pm-keys { display: grid; grid-template-columns: 84px 1fr; gap: 4px 8px; padding-top: 2px; }
+.pm-keys kbd { border: 0; background: none; padding: 0; font-weight: 600; }
+.pm-keys span { color: var(--graphite); }
+
+.pm-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 12px; color: var(--graphite); font-size: 0.76rem; }
+
+/* Menu switches are a touch smaller than the playground's. */
+.ng-menu .switch { width: 34px; height: 20px; }
+.ng-menu .switch i::after { width: 14px; height: 14px; }
+.ng-menu .switch input:checked + i::after { transform: translateX(14px); }
+.ng-menu .switch input:disabled + i { opacity: 0.45; }
+
+@media (max-width: 520px) {
+  .ng-menu { left: 8px; right: 8px; width: auto; }
+}

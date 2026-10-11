@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>NotchGate: Claude Code at your notch</title>
+  <meta name="description" content="Approve permissions, answer questions, follow progress and send prompts to Claude Code right from your MacBook's notch.">
+  <meta name="theme-color" content="#f5f5f7">
+  <link rel="icon" href="assets/spark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    (function () {
+      var theme;
+      try { theme = localStorage.getItem('ng-theme'); } catch (e) {}
+      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/menubar.css">
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/island.css">
+  <link rel="stylesheet" href="css/cards.css">
+  <link rel="stylesheet" href="css/hero.css">
+  <link rel="stylesheet" href="css/story.css">
+  <link rel="stylesheet" href="css/playground.css">
+  <link rel="stylesheet" href="css/details.css">
+  <link rel="stylesheet" href="css/install.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- The page is the Mac: a menu bar with a live notch in the middle. -->
+  <header class="menubar" role="banner">
+    <nav class="menubar-side menubar-left" aria-label="Primary">
+      <a class="brand" href="#top"><img src="assets/spark.svg" alt="" width="17" height="17">NotchGate</a>
+      <a class="menubar-link" href="#story" data-spy="story">Features</a>
+      <a class="menubar-link" href="#try" data-spy="try">Try it</a>
+      <a class="menubar-link" href="#install" data-spy="install">Install</a>
+    </nav>
+    <div class="menubar-side menubar-right">
+      <button class="icon-button" id="theme-toggle" type="button" aria-label="Switch to dark theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+      </button>
+      <button class="menu-extra" id="menu-extra" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="ng-menu" title="NotchGate menu">
+        <span class="menu-extra-glyph" aria-hidden="true"></span><span class="visually-hidden">Open the NotchGate menu</span>
+      </button>
+      <a class="star-button" href="https://github.com/PrajsRamteke/NotchGate" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.7 6.3.9-4.6 4.4 1.1 6.2L12 17l-5.6 3 1.1-6.2L2.9 9.4l6.3-.9z"/></svg>
+        <span>Star</span><span class="star-count" data-star-count hidden></span>
+      </a>
+      <a class="menubar-cta" href="#install">Install</a>
+    </div>
+  </header>
+  <div class="ng-menu" id="ng-menu" role="dialog" aria-label="NotchGate menu" hidden></div>
+
+  <div class="island" id="island" aria-live="polite" aria-label="NotchGate notch">
+    <div class="island-bar">
+      <span class="island-spark" aria-hidden="true"></span>
+      <span class="island-title"></span>
+      <span class="island-badge" hidden></span>
+    </div>
+    <div class="island-body"></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <h1 class="hero-title">Claude Code,<br>right at your notch.</h1>
+      <p class="hero-sub">Approve, answer and prompt Claude from the top of your screen. Never switch back to the terminal.</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#install">Install NotchGate</a>
+        <a class="button button-quiet" href="#try">Try it here</a>
+      </div>
+      <p class="hero-hint" aria-hidden="true"><span class="hint-hover">Hover</span><span class="hint-tap">Tap</span> the notch up there ↑</p>
+    </section>
+
+    <section class="story" id="story" aria-label="Features">
+      <div class="story-steps">
+        <article class="story-step" data-scene="permission">
+          <h2>Allow it without leaving your editor.</h2>
+          <p>When Claude wants to run something, the notch asks. One click, or <kbd>⌃⌥⏎</kbd>.</p>
+        </article>
+        <article class="story-step" data-scene="edit">
+          <h2>See the change before it lands.</h2>
+          <p>File edits arrive as a diff you can read at a glance.</p>
+        </article>
+        <article class="story-step" data-scene="question">
+          <h2>Answer in a click.</h2>
+          <p>Claude's questions show up with their options. Pick one, or write your own.</p>
+        </article>
+        <article class="story-step" data-scene="plan">
+          <h2>Approve the plan first.</h2>
+          <p>Read what Claude intends to do, then approve it or send it back with notes.</p>
+        </article>
+        <article class="story-step" data-scene="activity">
+          <h2>Every session, one glance.</h2>
+          <p>Hover the notch to see what each project is doing and how far along it is.</p>
+        </article>
+        <article class="story-step" data-scene="done">
+          <h2>Send the next prompt from up there.</h2>
+          <p>When Claude finishes, reply from the notch. It lands in Claude Code as a real prompt.</p>
+        </article>
+      </div>
+      <div class="story-stage" aria-hidden="true">
+        <div class="stage-terminal" id="stage-terminal"></div>
+      </div>
+    </section>
+
+    <section class="playground" id="try" aria-labelledby="try-title">
+      <div class="section-head">
+        <h2 id="try-title">Your turn.</h2>
+        <p>A pretend Claude Code session. Give it a task and answer it from the notch.</p>
+      </div>
+      <div class="desk">
+        <div class="window terminal" aria-label="Demo Claude Code terminal">
+          <div class="window-chrome">
+            <span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="window-title">checkout-api — claude</span>
+          </div>
+          <div class="terminal-scroll" id="term-log" aria-live="polite"></div>
+          <form class="terminal-input" id="term-form" autocomplete="off">
+            <span class="prompt-glyph" aria-hidden="true">❯</span>
+            <label class="visually-hidden" for="term-text">Message Claude</label>
+            <input id="term-text" type="text" placeholder="Ask Claude to do something…" maxlength="160">
+          </form>
+          <div class="chips" id="term-chips"></div>
+        </div>
+        <aside class="window settings" aria-label="Demo NotchGate settings">
+          <h3>Show in notch</h3>
+          <div id="settings-list"></div>
+          <button class="button button-quiet button-small" id="reset-demo" type="button">Start over</button>
+        </aside>
+      </div>
+    </section>
+
+    <section class="details" aria-label="Details">
+      <div class="details-grid" id="details-grid"></div>
+    </section>
+
+    <section class="install" id="install" aria-labelledby="install-title">
+      <h2 id="install-title">One line to install.</h2>
+      <div class="command">
+        <code id="install-command">curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/NotchGate/main/install.sh | bash</code>
+        <button class="button button-primary button-small" id="copy-command" type="button">Copy</button>
+      </div>
+      <ol class="install-steps">
+        <li>Paste it into Terminal.</li>
+        <li>Restart your Claude Code sessions.</li>
+        <li>Look up at the notch.</li>
+      </ol>
+      <p class="install-req">Needs macOS 14 or later, Claude Code, and Apple's Command Line Tools.</p>
+      <a class="button button-quiet" href="https://github.com/PrajsRamteke/NotchGate" target="_blank" rel="noopener">
+        Star NotchGate on GitHub <span class="star-count" data-star-count hidden></span>
+      </a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Designed and built by <a href="https://github.com/PrajsRamteke" target="_blank" rel="noopener">Prajwal Ramteke</a>.</p>
+    <p><a href="https://github.com/PrajsRamteke/NotchGate" target="_blank" rel="noopener">github.com/PrajsRamteke/NotchGate</a></p>
+    <p class="footer-note">Not affiliated with Anthropic.</p>
+  </footer>
+
+  <script src="js/util.js" defer></script>
+  <script src="js/theme.js" defer></script>
+  <script src="js/settings.js" defer></script>
+  <script src="js/demo-data.js" defer></script>
+  <script src="js/cards.js" defer></script>
+  <script src="js/island.js" defer></script>
+  <script src="js/story.js" defer></script>
+  <script src="js/terminal.js" defer></script>
+  <script src="js/playground.js" defer></script>
+  <script src="js/details.js" defer></script>
+  <script src="js/install.js" defer></script>
+  <script src="js/menu.js" defer></script>
+  <script src="js/header.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>

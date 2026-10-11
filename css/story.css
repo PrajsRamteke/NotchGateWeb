@@ -1,0 +1,82 @@
+/* Scroll story: text steps on the left drive the live notch at the top of the
+   page, while a sticky terminal on the right mirrors what Claude is waiting on. */
+.story {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(32px, 6vw, 96px);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 48px);
+}
+
+.story-step {
+  min-height: 78vh;
+  display: grid;
+  align-content: center;
+  gap: 16px;
+  max-width: 520px;
+  opacity: 0.22;
+  transition: opacity 0.5s ease;
+}
+.story-step.is-active { opacity: 1; }
+.story-step h2 { font-size: var(--step-1); }
+.story-step p { color: var(--graphite); font-size: 1.15rem; max-width: 36ch; }
+
+.story-stage {
+  position: sticky;
+  top: max(330px, calc(50vh - 150px));
+  align-self: start;
+  height: 340px;
+  margin-top: 26vh;
+}
+
+.stage-terminal {
+  height: 100%;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--terminal-bg);
+  color: var(--terminal-ink);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-lift);
+  font: 13px/1.65 var(--mono);
+  overflow: hidden;
+  position: relative;
+}
+.stage-terminal::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 30px;
+  border-bottom: 1px solid var(--hairline);
+  background:
+    radial-gradient(circle at 18px 15px, #ff5f57 5px, transparent 5.5px),
+    radial-gradient(circle at 36px 15px, #febc2e 5px, transparent 5.5px),
+    radial-gradient(circle at 54px 15px, #28c840 5px, transparent 5.5px);
+}
+.stage-lines { margin-top: 28px; display: grid; gap: 2px; }
+.stage-lines .dim { color: var(--terminal-dim); }
+.stage-lines .user { color: var(--terminal-ink); font-weight: 600; }
+.stage-lines .claude::before { content: "⏺ "; color: var(--clay); }
+.stage-lines .wait {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--clay-soft);
+  color: var(--clay);
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  animation: wait-pulse 2s ease-in-out infinite;
+}
+@keyframes wait-pulse { 50% { opacity: 0.6; } }
+.stage-lines > * { animation: line-in 0.4s var(--ease-out) both; }
+.stage-lines > *:nth-child(2) { animation-delay: 0.08s; }
+.stage-lines > *:nth-child(3) { animation-delay: 0.16s; }
+.stage-lines > *:nth-child(4) { animation-delay: 0.24s; }
+.stage-lines > *:nth-child(5) { animation-delay: 0.32s; }
+@keyframes line-in { from { opacity: 0; transform: translateY(6px); } }
+
+@media (max-width: 860px) {
+  .story { grid-template-columns: 1fr; }
+  .story-stage { display: none; }
+  .story-step { min-height: 70vh; max-width: none; text-align: center; justify-items: center; }
+}

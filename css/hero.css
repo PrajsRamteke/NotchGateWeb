@@ -1,0 +1,70 @@
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 26px;
+  padding: calc(var(--menubar-height) + 160px) 24px 96px;
+  text-align: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Light falling from the notch: the only decoration on the page. */
+.hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -10%;
+  left: 50%;
+  width: min(1100px, 140vw);
+  height: 80%;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, var(--clay-soft), transparent);
+  opacity: 0.9;
+  filter: blur(10px);
+}
+
+.hero-title {
+  font-size: var(--step-hero);
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+  max-width: 12ch;
+}
+
+.hero-sub {
+  max-width: 34ch;
+  color: var(--graphite);
+  font-size: clamp(1.1rem, 1.8vw, 1.35rem);
+  line-height: 1.45;
+}
+
+.hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 6px; }
+
+.hero-hint {
+  position: absolute;
+  top: calc(var(--menubar-height) + 22px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--graphite);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  animation: hint-float 2.6s ease-in-out infinite;
+}
+@keyframes hint-float { 50% { transform: translate(-50%, -4px); } }
+.hero-hint.is-gone { opacity: 0; transition: opacity 0.4s ease; }
+
+/* One orchestrated entrance on load. */
+.hero > * { animation: hero-in 0.9s var(--ease-out) both; }
+.hero-title { animation-delay: 0.05s; }
+.hero-sub { animation-delay: 0.18s; }
+.hero-actions { animation-delay: 0.3s; }
+.hero > .hero-hint { animation: hint-float 2.6s ease-in-out 1.2s infinite, hero-in 0.6s ease 1s both; }
+@keyframes hero-in { from { opacity: 0; transform: translateY(18px); } }
+
+.hint-tap { display: none; }
+@media (hover: none) {
+  .hint-hover { display: none; }
+  .hint-tap { display: inline; }
+}

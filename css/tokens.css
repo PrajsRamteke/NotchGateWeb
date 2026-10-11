@@ -1,0 +1,67 @@
+/* Design tokens: Apple's neutrals, a pure-black island, and Claude's clay
+   reserved for things that are live or clickable. Light is the default;
+   dark applies when the visitor picks it with the toggle. */
+
+:root {
+  --paper: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #ebebef;
+  --ink: #1d1d1f;
+  --graphite: #6e6e73;
+  --hairline: rgba(0, 0, 0, 0.09);
+  --clay: #d97757;
+  --clay-deep: #c15f3c;
+  --clay-soft: rgba(217, 119, 87, 0.12);
+  --menubar: rgba(245, 245, 247, 0.72);
+  --shadow-lift: 0 30px 80px -30px rgba(0, 0, 0, 0.35);
+  --terminal-bg: #ffffff;
+  --terminal-ink: #1d1d1f;
+  --terminal-dim: #8a8a8e;
+
+  /* The island is always pure black: it grows out of the hardware notch. */
+  --island: #000000;
+  --island-ink: #f5f3ec;
+  --island-dim: rgba(245, 243, 236, 0.62);
+  --island-faint: rgba(245, 243, 236, 0.4);
+  --island-surface: rgba(255, 255, 255, 0.06);
+  --island-raised: rgba(255, 255, 255, 0.1);
+  --island-hairline: rgba(255, 255, 255, 0.09);
+  --ok: #6cc49a;
+  --danger: #e5675b;
+
+  --serif: "Newsreader", "New York", ui-serif, Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+  --step-hero: clamp(3rem, 8.4vw, 7.25rem);
+  --step-1: clamp(2.1rem, 4.4vw, 3.5rem);
+  --step-2: clamp(1.35rem, 2.2vw, 1.75rem);
+  --step-body: 1.0625rem;
+
+  --spring: cubic-bezier(0.32, 1.28, 0.42, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --menubar-height: 44px;
+  --notch-width: 196px;
+  --notch-height: 34px;
+  /* The spark logo, inlined so masks also work when the page is opened from disk. */
+  --spark-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23D97757' d='M54.25 42.00Q54.89 24.36 50.00 0.00Q45.11 24.36 45.75 42.00ZM57.68 45.20Q64.32 34.97 68.50 17.96Q55.86 30.08 50.32 40.95ZM59.05 49.68Q74.65 41.41 93.30 25.00Q69.76 32.95 54.80 42.32ZM58.00 54.25Q70.18 54.89 87.00 50.00Q70.18 45.11 58.00 45.75ZM54.80 57.68Q69.76 67.05 93.30 75.00Q74.65 58.59 59.05 50.32ZM50.32 59.05Q55.86 69.92 68.50 82.04Q64.32 65.03 57.68 54.80ZM45.75 58.00Q45.11 75.64 50.00 100.00Q54.89 75.64 54.25 58.00ZM42.32 54.80Q35.68 65.03 31.50 82.04Q44.14 69.92 49.68 59.05ZM40.95 50.32Q25.35 58.59 6.70 75.00Q30.24 67.05 45.20 57.68ZM42.00 45.75Q29.82 45.11 13.00 50.00Q29.82 54.89 42.00 54.25ZM45.20 42.32Q30.24 32.95 6.70 25.00Q25.35 41.41 40.95 49.68ZM49.68 40.95Q44.14 30.08 31.50 17.96Q35.68 34.97 42.32 45.20ZM39.60 50a10.40 10.40 0 1 0 20.80 0a10.40 10.40 0 1 0 -20.80 0Z'/%3E%3C/svg%3E");
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --paper: #000000;
+  --surface: #161617;
+  --surface-2: #1d1d1f;
+  --ink: #f5f5f7;
+  --graphite: #86868b;
+  --hairline: rgba(255, 255, 255, 0.1);
+  --clay: #e08a6a;
+  --clay-soft: rgba(224, 138, 106, 0.14);
+  --menubar: rgba(22, 22, 23, 0.72);
+  --shadow-lift: 0 30px 80px -30px rgba(0, 0, 0, 0.9);
+  --terminal-bg: #0d0d0e;
+  --terminal-ink: #e8e6df;
+  --terminal-dim: #7c7c80;
+  color-scheme: dark;
+}

@@ -1,0 +1,89 @@
+/* Details: a grid with deliberately uneven spans and treatments, so each
+   fact gets the shape that suits it rather than a row of identical cards. */
+.details { padding: 80px clamp(16px, 4vw, 48px); }
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.tile {
+  position: relative;
+  padding: 28px;
+  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  overflow: hidden;
+}
+.tile h3 { font-size: var(--step-2); }
+.tile p { color: var(--graphite); max-width: 38ch; }
+.tile-wide { grid-column: span 4; }
+.tile-narrow { grid-column: span 2; }
+.tile-half { grid-column: span 3; }
+.tile-dark { background: var(--island); color: var(--island-ink); border-color: transparent; }
+.tile-dark p { color: var(--island-dim); }
+
+/* Risk checker */
+.risk-form { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+.risk-form input {
+  flex: 1;
+  min-width: 200px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--paper);
+  color: var(--ink);
+  font: 0.92rem var(--mono);
+  outline: none;
+}
+.risk-form input:focus { border-color: var(--clay); }
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.verdict.is-safe { background: rgba(108, 196, 154, 0.14); color: #2f9468; }
+.verdict.is-risky { background: rgba(229, 103, 91, 0.14); color: var(--danger); }
+
+/* Keycaps that light up when pressed */
+.keycaps { display: flex; gap: 8px; margin-top: 10px; }
+.keycap {
+  min-width: 48px;
+  height: 48px;
+  padding: 0 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--island-hairline);
+  box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.05);
+  font-size: 1.1rem;
+  transition: background-color 0.15s ease, transform 0.15s ease, color 0.15s ease;
+}
+.keycap.is-down { background: var(--clay); color: #fff; transform: translateY(2px); box-shadow: none; }
+
+.terminals { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.terminals span { padding: 6px 12px; border-radius: 999px; background: var(--surface-2); font-size: 0.88rem; }
+
+.mini-update { margin-top: 8px; padding: 14px; border-radius: 14px; background: var(--clay-soft); display: grid; gap: 8px; }
+.mini-update strong { color: var(--clay); }
+.mini-update .bar { height: 4px; border-radius: 99px; background: var(--hairline); overflow: hidden; }
+.mini-update .button { justify-self: start; }
+.mini-update .bar i { display: block; height: 100%; width: 0; background: var(--clay); transition: width 2.2s var(--ease-out); }
+
+@media (max-width: 860px) {
+  .tile-wide, .tile-narrow, .tile-half { grid-column: span 6; }
+}

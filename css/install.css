@@ -1,0 +1,62 @@
+.install {
+  display: grid;
+  justify-items: center;
+  gap: 26px;
+  padding: 120px clamp(16px, 4vw, 48px) 60px;
+  text-align: center;
+}
+.install h2 { font-size: var(--step-1); }
+
+.command {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(1080px, 100%);
+  padding: 10px 10px 10px 22px;
+  border-radius: 18px;
+  background: var(--island);
+  color: var(--island-ink);
+  box-shadow: var(--shadow-lift);
+}
+.command code {
+  flex: 1;
+  min-width: 0;
+  font: 0.95rem/1.5 var(--mono);
+  text-align: left;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.command code::-webkit-scrollbar { display: none; }
+@media (max-width: 1100px) {
+  /* Never hide the end of the command ("| bash" matters): wrap instead. */
+  .command code { white-space: pre-wrap; word-break: break-all; font-size: 0.86rem; }
+}
+.command code::before { content: "$ "; color: var(--clay); }
+
+.install-steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 36px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+  color: var(--graphite);
+}
+.install-steps li { counter-increment: step; display: flex; align-items: center; gap: 10px; }
+.install-steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--clay-soft);
+  color: var(--clay);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.install-req { color: var(--graphite); font-size: 0.9rem; }
