@@ -97,6 +97,13 @@
   // MARK: The scripted task
 
   async function runTask(prompt, task) {
+    task = {
+      permission: d.permission, ran: '12 passed, 1 failed: retries on timeout', runStep: 'Run the tests',
+      question: d.question, askStep: 'Pick storage',
+      edit: d.edit, edited: 'Updated client.ts (+2 −2)',
+      ...task,
+    };
+    const file = task.edit.sub.split('/').pop();
     const id = run;
     setBusy(true);
     try {
@@ -110,25 +117,25 @@
       term.tool(`Read(${task.read})`);
       await pause(id, 450);
       term.result('Read 214 lines');
-      setSession('working', 'Running the tests', 1, 'Run the tests');
+      setSession('working', 'Working…', 1, task.runStep);
 
-      if (await ask(id, 'permission', d.permission)) {
-        term.tool(`Bash(${d.permission.command})`);
+      if (await ask(id, 'permission', task.permission)) {
+        term.tool(`Bash(${task.permission.command})`);
         await pause(id, 700);
-        term.result('12 passed, 1 failed: retries on timeout');
+        term.result(task.ran);
       } else {
-        await term.claude('Okay, I won\'t run the tests.');
+        await term.claude('Okay, I won\'t run that.');
       }
-      setSession('working', 'Choosing storage', 2, 'Pick storage');
+      setSession('working', 'Working…', 2, task.askStep);
 
-      const choice = await ask(id, 'question', d.question);
+      const choice = await ask(id, 'question', task.question);
       await term.claude(`Going with ${choice}.`);
-      setSession('working', 'Editing client.ts', 3, 'Edit client.ts');
+      setSession('working', `Editing ${file}`, 3, `Edit ${file}`);
 
-      if (await ask(id, 'edit', d.edit)) {
-        term.tool(`Edit(${d.edit.sub})`);
+      if (await ask(id, 'edit', task.edit)) {
+        term.tool(`Edit(${task.edit.sub})`);
         await pause(id, 400);
-        term.result('Updated client.ts (+2 −2)');
+        term.result(task.edited);
       } else {
         await term.claude('Leaving the file as it is.');
       }
