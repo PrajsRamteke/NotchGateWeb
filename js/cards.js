@@ -90,6 +90,23 @@
       };
     },
 
+    /// Claude is blocked on something switched off for the notch: the notch
+    /// still opens, and points at the terminal until it's answered there.
+    attention(d) {
+      return {
+        title: d.project || 'checkout-api',
+        badge: 1,
+        waiting: true,
+        html: `<div class="card card-attention">
+          <div class="card-head"><span class="card-chip is-attention"><i class="bell"></i>Needs you</span><span class="grow"></span><span>just now</span></div>
+          ${title('Claude is waiting in the terminal', d.sub)}
+          <div class="attention-line"><span class="ring"></span><span>${e(d.what)}</span></div>
+          <div class="actions"><span class="note">Stays until you answer there.</span><span class="grow"></span>
+            <button class="pill is-primary" data-action="go" data-key="primary">Go to terminal <span class="key">⏎</span></button>
+          </div></div>`,
+      };
+    },
+
     result(text) {
       return { title: 'NotchGate', html: `<div class="card"><div class="ok-line">✓ ${e(text)}</div></div>` };
     },

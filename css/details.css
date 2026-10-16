@@ -26,6 +26,9 @@
 .tile-wide { grid-column: span 4; }
 .tile-narrow { grid-column: span 2; }
 .tile-half { grid-column: span 3; }
+.tile-full { grid-column: span 6; }
+.tile p b { color: var(--ink); font-weight: 600; }
+.tile-dark p b { color: var(--island-ink); }
 .tile-dark { background: var(--island); color: var(--island-ink); border-color: transparent; }
 .tile-dark p { color: var(--island-dim); }
 
@@ -84,6 +87,43 @@
 .mini-update .button { justify-self: start; }
 .mini-update .bar i { display: block; height: 100%; width: 0; background: var(--clay); transition: width 2.2s var(--ease-out); }
 
+/* Sounds: tap a chip to hear it. */
+.sound-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.sound-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 0.86rem var(--sans);
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s var(--spring);
+}
+.sound-chip:hover { border-color: rgba(217, 119, 87, 0.5); }
+.sound-chip:active { transform: scale(0.95); }
+.sound-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--clay); opacity: 0.35; }
+.sound-chip.is-playing i { animation: sound-ping 0.7s ease-out; }
+.sound-chip.is-playing { border-color: var(--clay); }
+@keyframes sound-ping { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(217, 119, 87, 0.6); } 100% { opacity: 0.35; box-shadow: 0 0 0 10px rgba(217, 119, 87, 0); } }
+.sound-roles { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--graphite); font-size: 0.85rem; }
+.sound-roles b { color: var(--clay); font-weight: 600; }
+
+/* Drafts: a 💬 chip with its dot, and a half-typed prompt. */
+.draft-demo { display: grid; gap: 10px; margin-top: 8px; }
+.draft-chip { position: relative; justify-self: start; display: inline-grid; place-items: center; width: 46px; height: 30px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); font-size: 0.9rem; }
+.draft-chip i { position: absolute; top: 2px; left: 26px; width: 8px; height: 8px; border-radius: 50%; background: var(--clay); box-shadow: 0 0 0 2px #000; animation: draft-dot 2s ease-in-out infinite; }
+@keyframes draft-dot { 50% { transform: scale(1.3); } }
+.draft-text { padding: 9px 12px; border-radius: 12px; border: 0.5px solid rgba(217, 119, 87, 0.5); background: rgba(255, 255, 255, 0.04); color: var(--island-ink); font-size: 0.86rem; }
+.draft-text b { display: inline-block; width: 1.5px; height: 1em; margin-left: 2px; vertical-align: -2px; background: var(--clay); animation: caret 1s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+
+.mini-update.is-current strong { color: #2f9468; }
+
 @media (max-width: 860px) {
-  .tile-wide, .tile-narrow, .tile-half { grid-column: span 6; }
+  .tile-wide, .tile-narrow, .tile-half, .tile-full { grid-column: span 6; }
 }

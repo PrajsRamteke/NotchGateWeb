@@ -1,10 +1,12 @@
 // The hover panel, recreated from the app: every session with its own
-// buttons (usage, reply, open terminal, ✕), four widgets toggled from the
-// header (Usage, Sessions, Tools, Resume), image drops, and quick settings.
+// buttons (usage, reply, open terminal, ✕), six widgets picked from the
+// header (Now Playing, Usage, Insights, Session, Tools, Resume), image drops,
+// and quick settings. The header's widget buttons work like tabs: one widget
+// at a time, so the notch never grows taller than the screen.
 //
 // Sessions live here so the playground, the story and the hover all show the
-// same thing. The panel re-renders in place each second; typed text, focus and
-// open menus survive because they're kept in `ui`, not in the DOM.
+// same thing. The panel re-renders each second by morphing the DOM in place,
+// so typed text, focus, scroll and running animations all survive.
 (function () {
   'use strict';
   const NG = window.NG;
@@ -44,7 +46,29 @@
     photo: svg('<rect x="3.5" y="6" width="14" height="12" rx="2"/><path d="M6.5 3.5h12a2 2 0 0 1 2 2v9"/><path d="M3.5 15l4-3.5 3 2.5 2.5-2 4 3.5"/>'),
     warning: svg('<path d="M12 4l9 15.5H3z" fill="currentColor" stroke="none"/><path d="M12 10v4M12 16.5v.5" stroke="#000" stroke-width="2"/>'),
     question: svg('<rect x="4" y="4.5" width="16" height="13" rx="3"/><path d="M9.8 9.2a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .8-1 1.4M12 15v.3"/><path d="M9 17.5l3 2.5 3-2.5"/>'),
+    music: svg('<path d="M9.5 17.5V6l9-2v11.5"/><circle cx="7" cy="17.5" r="2.5" fill="currentColor"/><circle cx="16" cy="15.5" r="2.5" fill="currentColor"/>'),
+    chart: svg('<path d="M4 20h16M6.5 16.5v-5M10.5 16.5V7M14.5 16.5v-3.5M18.5 16.5V9"/>'),
+    download: svg('<circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="M12 7.5v8M8.5 12.5l3.5 3.5 3.5-3.5" stroke="#000" stroke-width="2"/>'),
+    info: svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.2M12 7.8v.4"/>', 'is-info'),
+    bell: svg('<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z" fill="currentColor" stroke="none"/><path d="M10 20.5h4"/>'),
   };
+
+  /// The header's widget buttons, in the app's order: [id, setting, icon, name].
+  const widgets = [
+    ['music', 'nowPlaying', I.music, 'Now Playing'],
+    ['usage', 'usageWidget', I.gauge, 'Usage'],
+    ['insights', 'insightsWidget', I.chart, 'Insights'],
+    ['session', 'sessionWidget', I.cpu, 'Session'],
+    ['tools', 'toolsWidget', I.hammer, 'Tool activity'],
+    ['resume', 'resumeWidget', I.resume, 'Resume'],
+  ];
+  const available = () => widgets.filter(([, setting]) => S().get(setting));
+  /// The widget on show: the one picked in the header, if it's switched on.
+  const current = () => {
+    const id = S().get('panelWidget');
+    return available().some(([w]) => w === id) ? id : null;
+  };
+  const tip = (text, label) => `<button type="button" class="ap-tip" data-tip="${e(text)}" aria-label="About ${e(label)}">${I.info}</button>`;
 
   // MARK: Tools
 
@@ -123,6 +147,8 @@
     folderMenu: false,
     launching: null,
   };
+  /// Where Claude runs for each demo session: what ↗ brings to the front.
+  const hosts = { api: 'Terminal tab', web: 'Cursor window', docs: 'iTerm2 tab' };
 
   function load() {
     const t = Date.now();
@@ -130,6 +156,7 @@
       files: { added: 0, modified: 0, deleted: 0, linesAdded: 0, linesRemoved: 0 },
       ...JSON.parse(JSON.stringify(s)),
       calls: seedCalls(s.calls || [], t),
+      history: (s.history || []).slice(),
       // To-do progress is paced from page load: one item every 25 seconds.
       ...(s.tasks ? { tasks: { ...s.tasks, from: t, base: s.tasks.done } } : {}),
     }));
@@ -205,7 +232,7 @@
         ${bar(g.percent / 100, color)}
         <small>${resetPhrase(g.resetsAt, t, weekly)}</small></div>`;
     };
-    return `<section class="wg">
+    return `<section class="wg" data-key="w-usage">
       <div class="wg-head"><span class="wg-title">${I.gauge}Usage</span><span class="wg-meta">${updatedPhrase(u.updatedAt, t)}</span></div>
       <div class="ap-gauges">${gauge('5-hour limit', u.fiveHour)}${gauge('Weekly limit', u.weekly, true)}</div>
     </section>`;
@@ -236,7 +263,7 @@
       const total = entries.reduce((sum, s) => sum + s.snap.cost, 0);
       body = `<div class="ap-lines">${lines}</div><hr><div class="ap-gauge-top"><span>Total cost</span><b>${money(total)}</b></div>`;
     }
-    return `<section class="wg">
+    return `<section class="wg" data-key="w-session">
       <div class="wg-head"><span class="wg-title">${I.cpu}${title}</span>${entries.length ? `<span class="wg-meta">${updatedPhrase(newest, t)}</span>` : ''}</div>
       ${body}</section>`;
   }
@@ -262,7 +289,7 @@
         <div class="ap-heat" title="${cells.reduce((a, b) => a + b, 0)} tool calls in the last hour">${heat}</div>
         <div class="ap-heat-axis"><span>1 hour ago</span><span>Now</span></div>`;
     }
-    return `<section class="wg">
+    return `<section class="wg" data-key="w-tools">
       <div class="wg-head"><span class="wg-title">${I.hammer}${title}</span>${calls.length ? `<span class="wg-meta">${calls.length} calls</span>` : ''}</div>
       ${entries.length > 1 ? `<div class="ap-filters">${chip('All', null)}${entries.map((s) => chip(s.project, s.id)).join('')}</div>` : ''}
       ${body}</section>`;
@@ -278,7 +305,7 @@
     }).join('');
     const target = folderName();
     const projects = d().recentProjects.map((name) => `<button type="button" data-action="folder" data-folder="${e(name)}">${e(name)}</button>`).join('');
-    return `<section class="wg">
+    return `<section class="wg" data-key="w-resume">
       <div class="wg-head"><span class="wg-title">${I.resume}Resume</span></div>
       ${rows || '<p class="wg-empty">No earlier sessions to resume.</p>'}
       <hr>
@@ -289,7 +316,7 @@
           <button type="button" class="ap-folder" data-action="folder-menu" aria-expanded="${ui.folderMenu}">${I.folder}${e(target)}${I.chevron}</button>
         </span>
       </div>
-      ${ui.folderMenu ? `<div class="ap-menu" role="menu"><small>Recent projects</small>${projects}<button type="button" data-action="folder" data-folder="home">Home folder</button><hr><button type="button" data-action="choose-folder">Choose Folder…</button></div>` : ''}
+      ${ui.folderMenu ? `<div class="ap-menu" role="menu" data-key="folder-menu"><small>Recent projects</small>${projects}<button type="button" data-action="folder" data-folder="home">Home folder</button><hr><button type="button" data-action="choose-folder">Choose Folder…</button></div>` : ''}
     </section>`;
   }
 
@@ -301,6 +328,7 @@
   // MARK: Sessions
 
   function indicator(s) {
+    if (s.attention) return `<span class="ap-phase is-attention">${I.bell}</span>`;
     if (s.state === 'working') return '<span class="ap-phase is-working"></span>';
     if (s.state === 'waiting') return '<span class="ap-phase is-waiting"></span>';
     if (s.state === 'done') return `<span class="ap-phase is-done">${I.check}</span>`;
@@ -317,7 +345,7 @@
     const drop = ui.dragging ? (ui.dropTarget === s.id || (visible().length === 1) ? 'is-drop-target' : 'is-drop-available') : '';
     const status = drop === 'is-drop-target'
       ? `<div class="ap-status is-drop">${I.photo}Drop to attach to this session's next prompt</div>`
-      : `<div class="ap-status ${s.state === 'waiting' ? 'is-waiting' : s.state === 'done' || s.state === 'idle' ? 'is-quiet' : ''}">
+      : `<div class="ap-status ${s.state === 'waiting' || s.attention ? 'is-waiting' : s.state === 'done' || s.state === 'idle' ? 'is-quiet' : ''}">
           ${isWorking(s) ? (I[s.symbol] || I.terminal) : ''}<span>${e(s.status)}</span>${s.steps ? `<small>${s.steps} steps</small>` : ''}</div>`;
     const tasks = s.tasks && isWorking(s)
       ? `<div class="progress"><i style="width:${Math.round((s.tasks.done / s.tasks.total) * 100)}%"></i></div>
@@ -325,124 +353,114 @@
       : '';
     const images = ui.images[s.id] || [];
     const text = ui.text[s.id] || '';
+    const draft = !composerOpen && text.trim();
+    const turns = s.history.slice(-4).map((turn) => `<div class="ap-turn is-${turn.role}"><span>${turn.role === 'user' ? 'You' : '<i class="ap-spark"></i>'}</span><p>${e(turn.text)}</p></div>`).join('');
     const composer = composerOpen
-      ? `<form class="ap-composer" data-composer data-id="${s.id}">
+      ? `<form class="ap-composer" data-composer data-id="${s.id}" data-key="composer-${s.id}">
+          ${turns ? `<div class="ap-history" aria-label="Conversation so far">${turns}</div>` : ''}
           ${images.length ? `<div class="ap-thumbs">${images.map((img, i) => `<span class="ap-thumb"><img src="${img.url}" alt="${e(img.name)}"><button type="button" data-action="remove-image" data-id="${s.id}" data-index="${i}" aria-label="Remove ${e(img.name)}">${I.close}</button></span>`).join('')}</div>` : ''}
           <div class="ap-compose-row">
             <input type="text" data-field="${s.id}" value="${e(text)}" placeholder="Message Claude in ${e(s.project)}…" aria-label="Message Claude in ${e(s.project)}" maxlength="160">
             <button class="send" type="submit" aria-label="Send" ${text.trim() || images.length ? '' : 'disabled'}>↑</button>
           </div>
-          <small class="note">Types into ${e(s.project)}'s terminal and presses Return. Paste an image with ⌘V.</small>
+          <small class="note">Types into ${e(s.project)}'s terminal and presses Return. Paste an image with ⌘V. Unsent text waits here.</small>
         </form>`
       : '';
     const usage = S().get('sessionWidget')
       ? `<button type="button" class="ap-icon" data-action="row-usage" data-id="${s.id}" aria-pressed="${usageOpen}" title="Show this session's usage">${I.cpu}</button>`
       : '';
-    return `<div class="ap-row ${composerOpen ? 'is-composing' : ''} ${drop}" data-session="${s.id}">
+    return `<div class="ap-row ${composerOpen ? 'is-composing' : ''} ${s.attention ? 'is-attention' : ''} ${drop}" data-session="${s.id}" data-key="row-${s.id}">
       <div class="ap-row-top">
         ${indicator(s)}<b class="ap-name">${e(s.project)}</b><span class="grow"></span>${badge}
         <span class="ap-time" data-elapsed="${s.id}">${elapsed(s, t)}</span>
         ${usage}
-        <button type="button" class="ap-reply" data-action="reply" data-id="${s.id}" aria-expanded="${composerOpen}" title="Send this project a prompt">${s.queued ? I.clock : I.bubble}${I.chevron}</button>
-        <button type="button" class="ap-icon" data-action="open-terminal" data-id="${s.id}" title="Open this session's terminal">${I.open}</button>
+        <button type="button" class="ap-reply ${draft ? 'has-draft' : ''}" data-action="reply" data-id="${s.id}" aria-expanded="${composerOpen}" title="${draft ? 'You have an unsent prompt here' : 'Send this project a prompt'}">${s.queued ? I.clock : I.bubble}${I.chevron}</button>
+        <button type="button" class="ap-icon" data-action="open-terminal" data-id="${s.id}" title="Bring this session's ${hosts[s.id] || 'terminal'} to the front">${I.open}</button>
         <button type="button" class="ap-icon ap-dismiss" data-action="dismiss" data-id="${s.id}" ${canDismiss(s) ? '' : 'disabled'}
           title="${canDismiss(s) ? 'Remove from NotchGate. The session comes back when you prompt it.' : 'Can be removed once Claude stops'}">${I.close}</button>
       </div>
       ${status}${tasks}
       ${s.prompt ? `<div class="ap-prompt">“${e(s.prompt)}”</div>` : ''}
-      ${usageOpen ? `<div class="ap-usage">${s.snap ? details(s.snap) : '<p class="wg-empty">Appears after this session\'s next reply.</p>'}</div>` : ''}
+      ${usageOpen ? `<div class="ap-usage" data-key="usage-${s.id}">${s.snap ? details(s.snap) : '<p class="wg-empty">Appears after this session\'s next reply.</p>'}</div>` : ''}
       ${composer}
     </div>`;
   }
 
   function quickSettings() {
     const mode = S().get('questionMode');
-    const notes = { notch: 'Answer Claude\'s questions from the notch.', terminal: 'Questions appear only in the terminal.', off: 'Claude decides for itself.' };
+    const notes = { notch: 'Claude\'s questions show up in the notch with their options.', terminal: 'Questions appear only in the terminal, as without NotchGate.', off: 'Claude doesn\'t ask; it decides for itself and keeps going.' };
     const seg = (m, label) => `<button type="button" data-action="qs-mode" data-mode="${m}" aria-pressed="${mode === m}">${label}</button>`;
-    return `<section class="wg ap-qs">
+    return `<section class="wg ap-qs" data-key="qs">
       <div class="wg-head"><span class="wg-title is-plain">Quick settings</span><button type="button" class="ap-icon" data-action="qs-close" title="Hide quick settings (they stay in the ✦ menu)">${I.close}</button></div>
-      <div class="ap-qs-row">${I.bolt}<span><b>Auto-allow permissions</b><small>Risky commands still ask</small></span>
+      <div class="ap-qs-row">${I.bolt}<span><b>Auto-allow permissions${tip('Approves permission requests the moment they arrive, with no card. Risky commands like rm -rf, sudo and git push --force still ask.', 'auto-allow')}</b><small>Risky commands still ask</small></span>
         <button type="button" class="ap-switch" role="switch" data-action="qs-autoallow" aria-checked="${S().get('autoAllow')}" aria-label="Auto-allow permissions"></button></div>
-      <div class="ap-qs-row">${I.question}<span><b>Claude's questions</b><small>${notes[mode]}</small></span></div>
+      <div class="ap-qs-row">${I.question}<span><b>Claude's questions${tip(notes[mode], 'questions')}</b></span></div>
       <div class="ap-seg">${seg('notch', 'Notch')}${seg('terminal', 'Terminal')}${seg('off', 'Don\'t ask')}</div>
     </section>`;
   }
 
-  function header() {
+  function header(widget) {
     const count = state.sessions.filter((s) => !state.dismissed.has(s.id)).length;
-    const live = state.sessions.some((s) => !state.dismissed.has(s.id) && isWorking(s));
-    const toggle = (widget, card, icon, name) => S().get(widget)
-      ? `<button type="button" class="ap-toggle" data-action="card" data-card="${card}" aria-pressed="${S().get(card)}" title="${S().get(card) ? 'Hide' : 'Show'} ${name}">${icon}</button>`
+    const tabs = available();
+    const index = tabs.findIndex(([id]) => id === widget);
+    const tab = ([id, , icon, name]) => `<button type="button" class="ap-toggle" data-action="widget" data-widget="${id}" aria-pressed="${id === widget}" title="${id === widget ? 'Hide' : 'Show'} ${name}">${icon}</button>`;
+    const update = NG.updates && (NG.updates.available || NG.updates.state.status === 'updating')
+      ? `<button type="button" class="ap-update" data-action="update" ${NG.updates.available ? '' : 'disabled'} title="A newer NotchGate is available">${NG.updates.available ? `${I.download}Update` : '<span class="ap-spin"></span>Updating…'}</button>`
       : '';
-    return `<div class="ap-head">
-      <span class="ap-live">${I.wave}${live ? 'Live' : 'Activity'}</span>
+    return `<div class="ap-head" data-key="head">
+      <span class="ap-count">${count === 1 ? '1 session' : `${count} sessions`}</span>
       ${S().get('autoAllow') ? `<span class="ap-auto">${I.bolt}Auto-allow</span>` : ''}
+      ${update}
       <span class="grow"></span>
-      ${count ? `<span class="ap-count">${count === 1 ? '1 session' : `${count} sessions`}</span>` : ''}
-      ${toggle('usageWidget', 'usageCardShown', I.gauge, 'usage')}
-      ${toggle('sessionWidget', 'sessionCardShown', I.cpu, 'sessions')}
-      ${toggle('toolsWidget', 'toolsCardShown', I.hammer, 'tool activity')}
-      ${toggle('resumeWidget', 'resumeCardShown', I.resume, 'resume')}
+      ${tabs.length ? `<span class="ap-tabs" style="--i:${Math.max(index, 0)}" data-on="${index >= 0}">${tabs.map(tab).join('')}</span>` : ''}
     </div>`;
   }
 
-  function html(compact) {
+  function widgetCard(widget, t) {
+    switch (widget) {
+      case 'music': return NG.music.card();
+      case 'usage': return usageCard(t);
+      case 'insights': return NG.insights.card();
+      case 'session': return sessionsCard(t);
+      case 'tools': return toolsCard(t);
+      case 'resume': return resumeCard(t);
+      default: return '';
+    }
+  }
+
+  /// `compact`: the story's version, without quick settings. `widgetOnly`:
+  /// just the widget, for the widgets tour.
+  function html({ compact = false, widgetOnly = false } = {}) {
     const t = Date.now();
     const sessions = visible();
-    const on = (widget, card) => S().get(widget) && S().get(card);
-    const resumeShown = on('resumeWidget', 'resumeCardShown');
+    const widget = current();
     const hint = ui.dragging && sessions.length
-      ? `<div class="ap-drop-hint">${I.photo}${sessions.length === 1 ? `Drop to attach to ${e(sessions[0].project)}` : 'Drop on a project to attach the image'}</div>`
+      ? `<div class="ap-drop-hint" data-key="hint">${I.photo}${sessions.length === 1 ? `Drop to attach to ${e(sessions[0].project)}` : 'Drop on a project to attach the image'}</div>`
       : '';
     const list = sessions.length
-      ? `<div class="ap-rows">${sessions.map((s) => row(s, t)).join('')}</div>`
-      : `<div class="ap-empty"><div class="card-title">Nothing running</div><div class="card-sub">Start Claude Code in any terminal and its progress shows up here.</div>
-          ${resumeShown ? '' : `<button type="button" class="pill is-primary" data-action="new-session">${I.terminal}Open Claude Code</button>`}</div>`;
-    return `<div class="ap ${compact ? 'is-compact' : ''}">${header()}
-      ${on('usageWidget', 'usageCardShown') ? usageCard(t) : ''}
-      ${on('sessionWidget', 'sessionCardShown') ? sessionsCard(t) : ''}
-      ${on('toolsWidget', 'toolsCardShown') ? toolsCard(t) : ''}
-      ${resumeShown ? resumeCard(t) : ''}
-      ${hint}${list}
-      ${S().get('quickSettings') && !compact ? quickSettings() : ''}
+      ? `<div class="ap-rows" data-key="rows">${sessions.map((s) => row(s, t)).join('')}</div>`
+      : `<div class="ap-empty" data-key="empty"><div class="card-title">Nothing running</div><div class="card-sub">Start Claude Code in any terminal and its progress shows up here.</div>
+          ${widget === 'resume' ? '' : `<button type="button" class="pill is-primary" data-action="new-session">${I.terminal}Open Claude Code</button>`}</div>`;
+    return `<div class="ap ${compact ? 'is-compact' : ''} ${widgetOnly ? 'is-widget-only' : ''}">${header(widget)}
+      ${widgetCard(widget, t)}
+      ${widgetOnly ? '' : `${hint}${list}`}
+      ${S().get('quickSettings') && !compact && !widgetOnly ? quickSettings() : ''}
     </div>`;
   }
 
-  /// `compact`: the story's version, shorter so it covers less of the page.
-  function card(compact) {
+  function card(options) {
     const live = state.sessions.some((s) => !state.dismissed.has(s.id) && isWorking(s));
-    return { title: 'Claude', live, html: html(compact) };
+    return { title: 'Claude', live, pill: live ? 'live' : 'activity', html: html(options) };
   }
 
   // MARK: Rendering in place
 
   const showing = () => NG.island && NG.island.view && NG.island.view.isPanel && NG.island.root.dataset.state === 'open';
-  const signature = (markup) => markup.replace(/(data-elapsed="[^"]*">)[^<]*/g, '$1');
 
-  /// Re-renders the open panel, keeping focus and the caret in the prompt box.
+  /// Morphs the open panel to match the current state.
   function rerender() {
     if (!showing()) return;
-    const island = NG.island;
-    const next = card(island.view.compact);
-    if (signature(next.html) === signature(island.currentHTML)) {
-      // Only the clocks moved.
-      NG.$$('[data-elapsed]', island.body).forEach((el) => {
-        const s = find(el.dataset.elapsed);
-        if (s) el.textContent = elapsed(s, Date.now());
-      });
-      island.currentHTML = next.html;
-      return;
-    }
-    const active = document.activeElement;
-    const field = active && island.root.contains(active) && active.dataset.field;
-    const caret = field ? [active.selectionStart, active.selectionEnd] : null;
-    const scroll = island.body.scrollTop;
-    island.refresh(next);
-    island.body.scrollTop = scroll;
-    if (field) {
-      const input = NG.$(`[data-field="${field}"]`, island.body);
-      if (input) { input.focus({ preventScroll: true }); input.setSelectionRange(...caret); }
-    }
+    NG.island.refresh(card(NG.island.view.options));
   }
 
   // MARK: Actions
@@ -452,7 +470,13 @@
     const id = el && el.dataset.id;
     const s = id && find(id);
     switch (action) {
-      case 'card': S().set(el.dataset.card, !S().get(el.dataset.card)); break;
+      case 'widget': {
+        const widget = el.dataset.widget;
+        if (widget === 'insights' && current() !== 'insights') NG.insights.grow();
+        S().set('panelWidget', current() === widget ? null : widget);
+        break;
+      }
+      case 'update': NG.updates.update(); return;
       case 'tools-filter': ui.toolFilter = id || null; break;
       case 'row-usage': ui.usageOpen.has(id) ? ui.usageOpen.delete(id) : ui.usageOpen.add(id); break;
       case 'reply':
@@ -461,8 +485,8 @@
         if (ui.composer) NG.$(`[data-field="${id}"]`, NG.island.body)?.focus({ preventScroll: true });
         return;
       case 'open-terminal':
-        if (s && s.id === 'api' && NG.$('#try')) { NG.$('#try').scrollIntoView({ behavior: 'smooth' }); NG.toast('checkout-api\'s terminal, brought to the front'); }
-        else NG.toast(`Brings ${s ? s.project : 'its'} terminal window to the front`);
+        if (s && s.id === 'api' && NG.$('#try')) { NG.$('#try').scrollIntoView({ behavior: 'smooth' }); NG.toast('checkout-api\'s Terminal tab, brought to the front'); }
+        else NG.toast(`Brings ${s ? `${s.project}'s ${hosts[s.id] || 'terminal'}` : 'its terminal'} to the front`);
         return;
       case 'dismiss':
         if (!s || !canDismiss(s)) return;
@@ -483,7 +507,10 @@
       case 'qs-close': S().set('quickSettings', false); NG.toast('Quick settings hidden. They stay in the ✦ menu'); break;
       case 'qs-autoallow': S().set('autoAllow', !S().get('autoAllow')); break;
       case 'qs-mode': S().set('questionMode', el.dataset.mode); break;
-      default: return;
+      default:
+        if (action.startsWith('np-')) return NG.music.act(action);
+        if (NG.insights.act(action, el)) break;
+        return;
     }
     rerender();
   }
@@ -507,6 +534,7 @@
 
   /// A background session answering a prompt sent from the panel.
   async function simulateTurn(s, prompt) {
+    s.history.push({ role: 'user', text: prompt });
     Object.assign(s, { state: 'working', status: 'Thinking…', symbol: 'terminal', prompt, started: Date.now(), ended: null, tasks: null });
     rerender();
     await NG.sleep(1600);
@@ -522,7 +550,9 @@
     rerender();
     await NG.sleep(1800);
     const replies = d().sessionReplies;
-    Object.assign(s, { state: 'done', status: replies[Math.floor(Math.random() * replies.length)], ended: Date.now() });
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    s.history.push({ role: 'claude', text: reply });
+    Object.assign(s, { state: 'done', status: reply, ended: Date.now() });
     rerender();
   }
 
@@ -555,7 +585,7 @@
     const t = Date.now();
     state.sessions.unshift({
       id: `s${t}`, project, state: 'idle', status: 'Ready for your next message', steps: 0, started: null,
-      files: { added: 0, modified: 0, deleted: 0, linesAdded: 0, linesRemoved: 0 }, calls: [], snap: null, ...extra,
+      files: { added: 0, modified: 0, deleted: 0, linesAdded: 0, linesRemoved: 0 }, calls: [], history: [], snap: null, ...extra,
     });
   }
 
@@ -564,6 +594,9 @@
   function update(id, patch) {
     const s = find(id);
     if (!s) return;
+    // The conversation the prompt box shows: each new prompt, and Claude's final word.
+    if (patch.prompt && patch.prompt !== s.prompt) s.history.push({ role: 'user', text: patch.prompt });
+    if (patch.state === 'done' && patch.status && s.state !== 'done') s.history.push({ role: 'claude', text: patch.status });
     Object.assign(s, patch);
     if (patch.state === 'working') state.dismissed.delete(id);
     rerender();
@@ -608,7 +641,10 @@
       lastSimCall = t;
       record('web', ['Read', 'Edit', 'Bash', 'Grep'][Math.floor(Math.random() * 4)]);
     }
-    if (done === s.tasks.total) Object.assign(s, { state: 'done', status: s.finalMessage, ended: t, tasks: null });
+    if (done === s.tasks.total) {
+      s.history.push({ role: 'claude', text: s.finalMessage });
+      Object.assign(s, { state: 'done', status: s.finalMessage, ended: t, tasks: null });
+    }
   }
 
   // MARK: Images
@@ -709,7 +745,7 @@
 
   NG.panel = {
     /// What to hand the island: hover, story scenes and drops all use this.
-    view: ({ compact = false } = {}) => ({ card: card(compact), compact, isActivity: true, isPanel: true, onAction: handle }),
+    view: (options = {}) => ({ card: card(options), options, isActivity: true, isPanel: true, onAction: handle }),
     rerender,
     update,
     record,
@@ -724,6 +760,9 @@
     if (!NG.island) return;
     wireImages(NG.island.root);
     S().subscribe(() => rerender());
+    if (NG.updates) NG.updates.subscribe(() => rerender());
+    // Long titles scroll once they're on screen and measurable.
+    document.addEventListener('ng:rendered', (event) => NG.music && NG.music.fit(event.detail));
     setInterval(() => {
       simulate(Date.now());
       rerender();

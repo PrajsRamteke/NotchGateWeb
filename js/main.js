@@ -52,15 +52,23 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     NG.initTheme();
+    NG.initInfoTips();
     NG.initIsland();
+    NG.initMusic();
+    NG.initInsights();
     NG.initPanel();
     NG.initWater();
     NG.initHeader();
     NG.initMenu();
     NG.initPlayground();
     NG.initStory();
+    NG.initTour();
+    NG.initBuddySection();
+    NG.initWhatsNew();
     NG.initDetails();
     NG.initInstall();
+    // Music plays from the start, so the closed notch shows it.
+    NG.island.render();
     wireHover();
     showIntroOnScroll();
   });

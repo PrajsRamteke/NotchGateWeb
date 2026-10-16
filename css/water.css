@@ -1,13 +1,16 @@
-/* The water bot: hangs from the notch on a rope, just below the island
-   (which covers it when it opens). Colors are fixed: it's a character. */
+/* The water buddy: hangs from the notch on its line, just below the island
+   (which covers it when it opens). Colors are fixed: it's a character. The
+   characters themselves (and their lines) are styled in buddies.css. */
 .waterbot {
   --rope: 62px;
+  --line-x: 66px;
+  --buddy-w: 132px;
   position: fixed;
   top: 0;
-  left: 50%;
+  /* The line meets the notch a little left of the camera. */
+  left: calc(50% + var(--line-at, -84px));
   z-index: 49;
-  width: 330px;
-  margin-left: -150px;
+  width: 360px;
   pointer-events: none;
   font-family: ui-rounded, "SF Pro Rounded", var(--sans);
 }
@@ -15,62 +18,57 @@
 
 .wb-hang {
   position: relative;
-  width: 132px;
-  transform-origin: 66px 0;
-  transform: translateY(-260px);
+  width: var(--buddy-w);
+  margin-left: calc(-1 * var(--line-x));
+  padding-top: var(--rope);
+  transform-origin: var(--line-x) 0;
+  transform: translateY(-300px);
 }
-.waterbot.is-in .wb-hang { animation: wb-drop 0.9s var(--spring) both, wb-swing 3.2s ease-in-out 0.9s infinite; }
-.waterbot.is-leaving .wb-hang { animation: wb-climb 0.6s cubic-bezier(0.5, 0, 0.75, 0) both; }
+.waterbot.is-in .wb-hang { animation: wb-drop 0.95s var(--spring) both, wb-swing 3.4s ease-in-out 0.95s infinite; }
+.waterbot.is-leaving .wb-hang { animation: wb-climb 0.55s cubic-bezier(0.5, 0, 0.75, 0) both; }
+.waterbot[data-character="spidey"].is-in .wb-hang { animation: wb-drop 1.05s var(--spring) both, wb-swing 2.8s ease-in-out 1.05s infinite; }
 @keyframes wb-drop {
-  from { transform: translateY(-260px); }
-  to { transform: translateY(0); }
+  0% { transform: translateY(-300px); }
+  70% { transform: translateY(8px); }
+  100% { transform: translateY(0); }
 }
 @keyframes wb-swing {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
+  0%, 100% { transform: rotate(-2.6deg); }
+  50% { transform: rotate(2.6deg); }
 }
-@keyframes wb-climb { from { transform: translateY(0); } to { transform: translateY(-280px); } }
+@keyframes wb-climb { from { transform: translateY(0); } to { transform: translateY(-320px); } }
 
-.wb-rope {
-  display: block;
-  width: 5px;
-  height: var(--rope);
-  margin: 0 auto -4px;
-  border-radius: 3px;
-  background: repeating-linear-gradient(170deg, #d97757 0 3px, #b85a3c 3px 5px);
+/* The line runs from behind the notch down to the figure. */
+.wb-line {
+  position: absolute;
+  top: -40px;
+  left: var(--line-x);
+  height: calc(var(--line-end) + 40px);
+  pointer-events: none;
 }
 
 .wb-bot {
   display: block;
-  width: 132px;
+  width: var(--buddy-w);
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
   pointer-events: auto;
-  filter: drop-shadow(0 0 14px rgba(217, 119, 87, 0.45)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 0 14px rgba(217, 119, 87, 0.42)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.3));
+  transform-origin: var(--line-x) 0;
 }
 .wb-bot.is-poked { animation: wb-wiggle 0.5s ease; }
 @keyframes wb-wiggle { 25% { rotate: -9deg; } 60% { rotate: 7deg; } }
 .wb-bot.is-twirl { animation: wb-twirl 0.9s var(--spring); }
 @keyframes wb-twirl { to { rotate: 360deg; } }
-.wb-svg { width: 132px; height: 158px; overflow: visible; }
-.wb-arm-up { fill: none; stroke: #2a2420; stroke-width: 9; stroke-linecap: round; }
-.wb-glow { fill: none; stroke: #ffd9b8; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px #ff9e6b); }
-.wb-fill { fill: #ffd9b8; filter: drop-shadow(0 0 3px #ff9e6b); }
-.wb-sweat { fill: #8fc6ff; }
-.wb-z { fill: #c8c4d8; font: 800 11px ui-rounded, var(--sans); }
-
-.wb-bottle { transform: translate(103px, 98px) rotate(10deg); transition: transform 0.6s var(--spring); }
-.wb-water { transform: translateY(5px); transition: transform 1.6s ease 0.3s; }
-.waterbot[data-state="drinking"] .wb-bottle { transform: translate(92px, 63px) rotate(-100deg); }
-.waterbot[data-state="drinking"] .wb-water { transform: translateY(19px); }
+.wb-bot .wb-svg { display: block; overflow: visible; }
 
 .wb-bubble {
   position: absolute;
-  top: calc(var(--rope) + 18px);
-  left: 136px;
-  width: 182px;
+  top: var(--bubble-y, 80px);
+  left: var(--bubble-x, 136px);
+  width: 186px;
   padding: 10px 14px 11px;
   border-radius: 18px;
   background: linear-gradient(#fff, #f5f3ec);
@@ -92,6 +90,21 @@
   border-radius: 0 0 0 18px;
   transform: skewX(-30deg);
 }
+/* Sparkles around the bubble, like the app's. */
+.wb-bubble::after {
+  content: "";
+  position: absolute;
+  top: -18px;
+  right: -22px;
+  width: 16px;
+  height: 22px;
+  background: #d97757;
+  opacity: 0.9;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 10'%3E%3Cpath d='M4 0c1.5 2.4 4 4.3 4 6.2A4 4 0 0 1 0 6.2C0 4.3 2.5 2.4 4 0z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 10'%3E%3Cpath d='M4 0c1.5 2.4 4 4.3 4 6.2A4 4 0 0 1 0 6.2C0 4.3 2.5 2.4 4 0z'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: wb-float 2.4s ease-in-out infinite;
+}
+@keyframes wb-float { 50% { transform: translateY(-5px); } }
 .wb-bubble b { display: block; font-size: 17px; font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
 .wb-bubble b.is-new { animation: wb-pop 0.35s var(--spring); }
 @keyframes wb-pop { from { opacity: 0; transform: scale(0.85); transform-origin: left; } }
@@ -111,7 +124,7 @@
   align-items: center;
   gap: 6px;
   width: max-content;
-  margin: 14px 0 0 -6px;
+  margin: 14px 0 0 calc(-1 * var(--line-x) - 6px);
   padding: 6px;
   border-radius: 999px;
   background: #000;
@@ -142,12 +155,13 @@
 .wb-actions button:hover { filter: brightness(1.2); }
 .wb-actions button:active { transform: scale(0.95); }
 .wb-actions svg { width: 16px; height: 16px; fill: currentColor; }
-.wb-actions .wb-drink { background: linear-gradient(#d97757, #c15f3c); }
+.wb-actions .wb-drank { background: linear-gradient(#d97757, #c15f3c); }
 .wb-actions .wb-skip { width: 32px; padding: 0; justify-content: center; background: none; color: rgba(245, 243, 236, 0.5); }
 .wb-actions .wb-skip svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 
 @media (max-width: 520px) {
-  .waterbot { transform: scale(0.82); transform-origin: top center; }
+  .waterbot { --line-at: -110px; transform: scale(0.82); transform-origin: 0 0; }
+  .wb-bubble { width: 160px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .waterbot.is-in .wb-hang { animation: none; transform: none; }

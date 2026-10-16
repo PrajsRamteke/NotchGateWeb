@@ -60,10 +60,39 @@
       return data.options[0].label;
     }
     setSession('waiting', kind === 'question' ? 'Asking you a question' : `Needs permission · ${data.title.replace('?', '')}`);
-    const answer = setting(kindSetting[kind]) ? await askInNotch(kind, data) : await askInTerminal(kind, data);
+    const answer = setting(kindSetting[kind]) ? await askInNotch(kind, data) : await askWithAlert(kind, data);
     guard(id);
     setSession('working', 'Working…');
     return answer;
+  }
+
+  const blockedOn = {
+    permission: (data) => [`Waiting to run ${data.command}`, 'Permissions are answered in the terminal.'],
+    edit: (data) => [`Waiting to edit ${data.sub}`, 'File edits are answered in the terminal.'],
+    question: (data) => [data.text, 'Questions are answered in the terminal.'],
+  };
+
+  /// Switched off for the notch, but Claude is still blocked on you: the
+  /// notch opens with an alert pointing at the terminal, and it stays until
+  /// the terminal is answered.
+  async function askWithAlert(kind, data) {
+    const [what, sub] = blockedOn[kind](data);
+    NG.panel.update(ID, { attention: true, status: 'Needs you in the terminal' });
+    NG.island.claim('play', {
+      card: NG.cards.attention({ project: 'checkout-api', what, sub }),
+      onAction(action) {
+        if (action !== 'go') return;
+        NG.island.release('play');
+        NG.$('#try').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => NG.$('#term-log .t-dialog button')?.focus({ preventScroll: true }), 500);
+      },
+    });
+    try {
+      return await askInTerminal(kind, data);
+    } finally {
+      NG.island.release('play');
+      NG.panel.update(ID, { attention: false });
+    }
   }
 
   function askInNotch(kind, data) {
@@ -161,6 +190,7 @@
       queued = null;
       return followUp(next);
     }
+    NG.chime('finished');
     if (!S().get('replyWhenDone')) {
       if (!S().get('notices')) return;
       NG.island.claim('play', { card: { ...NG.cards.result('Claude finished'), title: 'checkout-api' }, peek: true });
@@ -211,7 +241,8 @@
   function reset() {
     run++;
     queued = null;
-    NG.panel.update(ID, { state: 'idle', status: 'Ready for your next message', tasks: null });
+    NG.panel.update(ID, { state: 'idle', status: 'Ready for your next message', tasks: null, attention: false });
+    NG.updates && NG.updates.reset();
     NG.island.release('play');
     setBusy(false);
     term.clear();

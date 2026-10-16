@@ -15,26 +15,33 @@
     autoExpand: true,
     liveActivity: true,
     quickSettings: true,
-    sound: false,
     notices: true,
     checkUpdates: true,
     launchAtLogin: true,
 
-    // Widgets: a switch each in the menu, and a card toggled from the panel header.
+    // Sounds: off by default here (a polite website), on in the app.
+    sound: false,
+    attentionSound: 'Tink',
+    finishedSound: 'Pop',
+
+    // Widgets: a switch each in the menu. The hover panel shows one at a
+    // time, picked from the buttons in its header (null: sessions only).
     usageWidget: true,
-    usageCardShown: false,
+    insightsWidget: true,
     sessionWidget: true,
-    sessionCardShown: true,
     toolsWidget: true,
-    toolsCardShown: false,
     resumeWidget: true,
-    resumeCardShown: true,
+    panelWidget: 'music',
+    insightsRange: 'day',    // 'day' | 'week' | 'month'
 
     // Extras
+    nowPlaying: true,
+    nowPlayingClosed: true,
     waterReminder: true,
     waterMinutes: 15,
     waterSnooze: 10,
     waterGoal: 8,
+    waterBuddy: 'robot',     // 'robot' | 'spidey' | 'batman' | 'random'
   };
 
   const values = { ...defaults };
@@ -58,25 +65,9 @@
     questionsInNotch: () => values.questionMode !== 'terminal',
   };
 
-  // A soft two-note chime for new requests (off by default, like a polite website).
-  let audio;
-  NG.chime = function () {
-    if (!values.sound) return;
-    try {
-      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-      [880, 1318.5].forEach((frequency, i) => {
-        const osc = audio.createOscillator();
-        const gain = audio.createGain();
-        const start = audio.currentTime + i * 0.09;
-        osc.frequency.value = frequency;
-        osc.type = 'sine';
-        gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(0.08, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35);
-        osc.connect(gain).connect(audio.destination);
-        osc.start(start);
-        osc.stop(start + 0.4);
-      });
-    } catch (_) { /* audio unavailable */ }
+  /// The "Claude needs you" sound, when sounds are on.
+  NG.chime = function (cue = 'attention') {
+    if (!values.sound || !NG.sounds) return;
+    NG.sounds.play(cue === 'finished' ? values.finishedSound : values.attentionSound);
   };
 })();

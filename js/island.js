@@ -2,12 +2,15 @@
 //
 // Sections "claim" the island while they're on screen (the most recent claim
 // wins) and receive the actions people take on its cards. Hovering an idle
-// notch reveals live activity, just like the app.
+// notch reveals live activity, just like the app. While music plays, the
+// closed notch wears the artwork and an equalizer either side of the camera.
 (function () {
   'use strict';
   const NG = window.NG;
 
   const css = (name) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+  /// How far each music wing widens the closed notch (on a phone they fit inside it).
+  const wing = () => (window.innerWidth < 520 ? 0 : 34);
   const expandedWidth = () => Math.min(460, window.innerWidth - 24);
 
   class Island {
@@ -15,6 +18,8 @@
       this.root = root;
       this.title = NG.$('.island-title', root);
       this.badge = NG.$('.island-badge', root);
+      this.pill = NG.$('.island-pill', root);
+      this.wings = NG.$('.island-wings', root);
       this.body = NG.$('.island-body', root);
       this.owners = new Map();
       this.order = 0;
@@ -78,8 +83,19 @@
       const token = ++this.renderToken;
       this.view = view;
       this.setChrome(card);
-      if (this.root.dataset.state === 'open' && this.currentHTML === card.html) return;
+      // Already showing it (or a newer call supersedes a fade in flight): just make sure it's visible.
+      if (this.root.dataset.state === 'open' && this.currentHTML === card.html) {
+        this.body.classList.add('is-shown');
+        return;
+      }
 
+      // Panel to panel (a story scene, a widget tab): morph, don't fade.
+      if (this.root.dataset.state === 'open' && this.panelShown && view.isPanel) {
+        this.currentHTML = card.html;
+        NG.morph(this.body, card.html);
+        this.body.classList.add('is-shown');
+        return this.resize();
+      }
       if (this.root.dataset.state === 'open') {
         this.body.classList.remove('is-shown');
         await NG.sleep(140);
@@ -90,11 +106,13 @@
         NG.chime();
       }
       this.currentHTML = card.html;
+      this.panelShown = Boolean(view.isPanel);
       const width = expandedWidth();
       this.body.style.width = `${width}px`;
       this.body.innerHTML = card.html;
       this.root.dataset.state = 'open';
-      this.setSize(width, css('--notch-height') + this.body.offsetHeight);
+      this.setWings(false);
+      this.resize();
       requestAnimationFrame(() => token === this.renderToken && this.body.classList.add('is-shown'));
     }
 
@@ -102,9 +120,15 @@
     refresh(card) {
       if (this.root.dataset.state !== 'open') return;
       this.currentHTML = card.html;
-      this.body.innerHTML = card.html;
+      NG.morph(this.body, card.html);
       this.setChrome(card);
+      this.resize();
+    }
+
+    /// Springs the island to fit what's inside it.
+    resize() {
       this.setSize(expandedWidth(), css('--notch-height') + this.body.offsetHeight);
+      document.dispatchEvent(new CustomEvent('ng:rendered', { detail: this.body }));
     }
 
     peek(card) {
@@ -113,6 +137,8 @@
       this.currentHTML = '';
       this.body.classList.remove('is-shown');
       this.setChrome(card);
+      this.panelShown = false;
+      this.setWings(false);
       this.root.dataset.state = 'peek';
       this.setSize(Math.min(css('--notch-width') + 210, window.innerWidth - 24), css('--notch-height'));
     }
@@ -121,17 +147,39 @@
       this.renderToken++;
       this.view = null;
       this.currentHTML = '';
+      this.panelShown = false;
       this.body.classList.remove('is-shown');
       this.root.dataset.state = 'idle';
       delete this.root.dataset.waiting;
       delete this.root.dataset.live;
-      this.setSize(css('--notch-width'), css('--notch-height'));
+      const music = Boolean(NG.music && NG.music.showsInClosedNotch());
+      this.setWings(music);
+      this.setSize(css('--notch-width') + (music ? 2 * wing() : 0), css('--notch-height'));
+    }
+
+    /// The closed notch while music plays: artwork left of the camera, an equalizer right of it.
+    setWings(on) {
+      if (!this.wings) return;
+      this.root.toggleAttribute('data-music', on);
+      if (!on) return;
+      const track = NG.music.track;
+      const key = `${track.title}|${track.accent}`;
+      if (this.wings.dataset.track === key) return;
+      this.wings.dataset.track = key;
+      this.wings.style.setProperty('--np-accent', track.accent);
+      this.wings.innerHTML = `<span class="island-wing is-left">${NG.music.artwork(track, 'wing')}</span><span class="island-wing is-right">${NG.music.eq(4, 'is-wing')}</span>`;
     }
 
     setChrome(card) {
       this.title.textContent = card.title || '';
       this.badge.hidden = !card.badge;
       this.badge.textContent = card.badge || '';
+      // "Live" with a moving waveform while a session works; "Activity" otherwise.
+      if (this.pill) {
+        this.pill.hidden = !card.pill || Boolean(card.badge);
+        this.pill.dataset.live = String(card.pill === 'live');
+        this.pill.lastElementChild.textContent = card.pill === 'live' ? 'Live' : 'Activity';
+      }
       this.root.toggleAttribute('data-waiting', Boolean(card.waiting));
       this.root.toggleAttribute('data-live', Boolean(card.live || card.waiting));
     }
@@ -199,6 +247,10 @@
 
       document.addEventListener('keydown', (event) => this.handleShortcut(event));
       window.addEventListener('resize', () => this.render());
+      // Play, pause or a new track changes the closed notch.
+      document.addEventListener('ng:music', () => {
+        if (this.root.dataset.state === 'idle') { if (this.wings) this.wings.dataset.track = ''; this.idle(); }
+      });
     }
 
     setHovering(hovering) {

@@ -1,0 +1,203 @@
+/* The water buddies (js/buddies.js): the lines they hang from, their poses,
+   drinking, and the little mood effects. Colors are fixed: they're characters.
+   Set data-mood on the <svg> and toggle .is-drinking; everything else is here. */
+
+.wb-svg {
+  --wb-spring: var(--spring, cubic-bezier(0.32, 1.28, 0.42, 1));
+  display: block;
+  overflow: visible;
+}
+
+/* MARK: Lines. Position with left = lineX (the line centers itself on it). */
+
+.wb-line {
+  display: block;
+  translate: -50% 0;
+  pointer-events: none;
+}
+.wb-line.is-rope {
+  width: 5px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(170deg, #d97757 0 3px, #b85a3c 3px 5px);
+}
+/* Silk: an outlined white strand with a glint running down it. */
+.wb-line.is-web {
+  width: 3px;
+  border-radius: 2px;
+  background:
+    linear-gradient(transparent, rgba(255, 255, 255, 0.95) 45% 55%, transparent) no-repeat 0 -40px / 100% 26px,
+    linear-gradient(90deg, rgba(28, 7, 11, 0.6), #e3e8f1 28%, #fff 50%, #c5ccd9 74%, rgba(28, 7, 11, 0.6));
+  animation: wb-glint 2.4s ease-in-out infinite;
+}
+@keyframes wb-glint {
+  0%, 20% { background-position: 0 -40px, 0 0; }
+  80%, 100% { background-position: 0 calc(100% + 40px), 0 0; }
+}
+/* Grapnel: a taut steel cable. */
+.wb-line.is-grapnel {
+  width: 3px;
+  border-radius: 1.5px;
+  background: linear-gradient(90deg, #0b0d12 0 24%, #8c97a8 24% 46%, #c9d2de 46% 62%, #0b0d12 62%);
+}
+
+/* MARK: Poses. Each .wb-pose / .wb-drink group turns around its own pivot
+   (--px, --py, inline) by the angle for the current mood or for drinking. */
+
+.wb-svg .wb-pose,
+.wb-svg .wb-drink {
+  --r: 0deg;
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transform: translate(var(--px), var(--py)) rotate(var(--r)) translate(calc(var(--px) * -1), calc(var(--py) * -1));
+}
+.wb-svg .wb-pose { transition: transform 0.55s var(--wb-spring); }
+.wb-svg .wb-drink { transition: transform 0.8s var(--wb-spring); }
+.wb-svg[data-mood="excited"] .wb-pose { --r: var(--excited, 0deg); }
+.wb-svg[data-mood="pleading"] .wb-pose { --r: var(--pleading, 0deg); }
+.wb-svg[data-mood="thirsty"] .wb-pose { --r: var(--thirsty, 0deg); }
+.wb-svg[data-mood="delighted"] .wb-pose { --r: var(--delighted, 0deg); }
+.wb-svg[data-mood="sleepy"] .wb-pose { --r: var(--sleepy, 0deg); }
+.wb-svg[data-mood="tickled"] .wb-pose { --r: var(--tickled, 0deg); }
+.wb-svg.is-drinking .wb-drink { --r: var(--drink, 0deg); }
+
+/* Drinking: the cap comes off, the water level drops, the mouth opens. */
+.wb-svg .wb-water { transition: transform 1.5s ease 0.45s; }
+.wb-svg.is-drinking .wb-water { transform: translateY(15px); }
+.wb-svg .wb-cap { transition: opacity 0.2s ease, translate 0.3s ease; }
+.wb-svg.is-drinking .wb-cap { opacity: 0; translate: 0 -8px; transition-delay: 0.15s; }
+.wb-svg .wb-sip { opacity: 0; transition: opacity 0.15s ease; }
+.wb-svg .wb-smile { transition: opacity 0.15s ease; }
+.wb-svg.is-drinking .wb-sip { opacity: 1; transition-delay: 0.4s; }
+.wb-svg.is-drinking .wb-smile { opacity: 0; transition-delay: 0.4s; }
+
+/* Pleading: a hopeful little shake of the bottle every few seconds. */
+.wb-svg .wb-bottle-shake { transform-box: view-box; transform-origin: var(--px) var(--py); }
+.wb-svg[data-mood="pleading"]:not(.is-drinking) .wb-bottle-shake { animation: wb-plead 2.6s ease-in-out infinite; }
+@keyframes wb-plead {
+  0%, 26%, 100% { rotate: 0deg; }
+  5% { rotate: 13deg; }
+  10% { rotate: -11deg; }
+  15% { rotate: 8deg; }
+  20% { rotate: -4deg; }
+}
+
+/* MARK: Faces */
+
+.wb-svg .wb-blink {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: wb-blink 3.8s ease-in-out infinite;
+}
+.wb-batman .wb-blink { animation-duration: 4.2s; }
+@keyframes wb-blink {
+  0%, 95%, 100% { scale: 1 1; }
+  97.5% { scale: 1 0.12; }
+}
+
+.wb-svg .wb-drip { animation: wb-drip 1.7s ease-in infinite; }
+@keyframes wb-drip {
+  0% { translate: 0 -2px; opacity: 0; }
+  15% { opacity: 1; }
+  100% { translate: 0 12px; opacity: 0.25; }
+}
+
+.wb-zzz .wb-zed {
+  font: 900 9px ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  opacity: 0;
+  animation: wb-snore 2.2s linear infinite;
+  animation-delay: calc(var(--i) * -0.733s);
+}
+@keyframes wb-snore {
+  0% { translate: 0 0; scale: 1; opacity: 0; }
+  18% { opacity: 1; }
+  70% { opacity: 0.9; }
+  100% { translate: var(--zx) var(--zy); scale: 1.7; opacity: 0; }
+}
+
+.wb-svg .wb-snore { transform-box: fill-box; transform-origin: 50% 50%; animation: wb-breathe 2.6s ease-in-out infinite; }
+@keyframes wb-breathe { 50% { scale: 1.6; } }
+
+/* Tickled: the whole head giggles. */
+/* Turns around the head's pivot (the neck for Batman), inherited from .wb-head. */
+.wb-svg .wb-head-wobble { transform-box: view-box; transform-origin: var(--px) var(--py); }
+.wb-svg[data-mood="tickled"] .wb-head-wobble { animation: wb-giggle 0.36s ease-in-out infinite; }
+@keyframes wb-giggle {
+  0%, 100% { rotate: -5deg; }
+  50% { rotate: 5deg; }
+}
+
+/* MARK: Spidey */
+
+/* The free hand: a loose mitten, or the web-shooter sign when excited. */
+.wb-spidey .wb-glove,
+.wb-spidey .wb-thwip { transition: opacity 0.12s ease; }
+.wb-spidey .wb-thwip { opacity: 0; }
+.wb-spidey:is([data-mood="excited"], [data-mood="delighted"]) .wb-thwip { opacity: 1; }
+.wb-spidey:is([data-mood="excited"], [data-mood="delighted"]) .wb-glove { opacity: 0; }
+
+.wb-spidey .wb-wave { transform-box: view-box; transform-origin: var(--px) var(--py); animation: wb-wave 2.9s ease-in-out infinite; }
+.wb-spidey[data-mood="tickled"] .wb-wave { animation-duration: 0.45s; --wave: 16deg; }
+.wb-spidey:is([data-mood="excited"], [data-mood="delighted"]) .wb-wave { animation-duration: 1s; --wave: 5deg; }
+.wb-spidey:is([data-mood="sleepy"], [data-mood="thirsty"]) .wb-wave { animation: none; }
+@keyframes wb-wave {
+  0%, 100% { rotate: calc(var(--wave, 7deg) * -1); }
+  50% { rotate: var(--wave, 7deg); }
+}
+
+/* The hooked leg kicks a little; more when he's excited. */
+.wb-spidey .wb-kick {
+  transform-box: fill-box;
+  transform-origin: 30% 88%;
+  animation: wb-kick 2.6s ease-in-out infinite;
+}
+.wb-spidey:is([data-mood="excited"], [data-mood="delighted"]) .wb-kick { animation-duration: 0.9s; }
+.wb-spidey[data-mood="tickled"] .wb-kick { animation-duration: 0.5s; }
+.wb-spidey:is([data-mood="sleepy"], [data-mood="thirsty"]) .wb-kick { animation-duration: 5s; }
+@keyframes wb-kick {
+  0%, 100% { rotate: -6deg; }
+  50% { rotate: 7deg; }
+}
+
+/* MARK: Batman */
+
+/* A cool rim of light so the dark suit holds its shape on dark backgrounds. */
+.wb-svg.wb-batman { filter: drop-shadow(0 0 3px rgba(157, 180, 216, 0.35)); }
+
+.wb-batman .wb-cape {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: wb-cape 3.4s ease-in-out infinite;
+}
+.wb-batman:is([data-mood="excited"], [data-mood="delighted"], [data-mood="tickled"]) .wb-cape { animation-duration: 1.1s; }
+.wb-batman:is([data-mood="sleepy"], [data-mood="thirsty"]) .wb-cape { animation-duration: 6s; }
+@keyframes wb-cape {
+  0%, 100% { rotate: -1.4deg; scale: 1 1; }
+  50% { rotate: 1.4deg; scale: 1.02 0.985; }
+}
+
+/* MARK: Robot (the site's original bot) */
+
+.wb-robot .wb-arm-up { fill: none; stroke: #2a2420; stroke-width: 9; stroke-linecap: round; }
+.wb-robot .wb-glow { fill: none; stroke: #ffd9b8; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px #ff9e6b); }
+.wb-robot .wb-fill { fill: #ffd9b8; filter: drop-shadow(0 0 3px #ff9e6b); }
+.wb-robot .wb-sweat { fill: #8fc6ff; }
+.wb-robot .wb-z { fill: #c8c4d8; font: 800 11px ui-rounded, "SF Pro Rounded", system-ui, sans-serif; }
+.wb-robot .wb-drink-arm { transform: translate(103px, 98px) rotate(10deg); transition: transform 0.6s var(--wb-spring); }
+.wb-robot.is-drinking .wb-drink-arm { transform: translate(92px, 63px) rotate(-100deg); }
+.wb-svg.wb-robot .wb-water { transform: translateY(5px); transition: transform 1.6s ease 0.3s; }
+.wb-svg.wb-robot.is-drinking .wb-water { transform: translateY(19px); }
+
+/* MARK: Reduced motion: hold still, keep the poses. */
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-svg *,
+  .wb-line { animation: none !important; }
+  .wb-svg * { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .wb-zzz .wb-zed {
+    opacity: 0.9;
+    translate: calc(var(--i) * var(--zx) / 2.5) calc(var(--i) * var(--zy) / 2.5);
+    scale: calc(1 + var(--i) * 0.3);
+  }
+}

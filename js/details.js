@@ -21,26 +21,37 @@
       </div>
     </article>
     <article class="tile tile-half">
-      <h3>Works where Claude runs.</h3>
-      <p>Prompts from the notch land in the right session.</p>
-      <div class="terminals"><span>Terminal</span><span>iTerm2</span><span>tmux</span><span>Cursor</span><span>VS Code</span><span>WezTerm</span></div>
+      <h3>Sounds you pick.</h3>
+      <p>One for <b>Claude needs you</b>, one for <b>Claude finished</b>, from macOS's own. Tap to listen.</p>
+      <div class="sound-chips" id="sound-chips"></div>
+      <div class="sound-roles"><span>Needs you: <b data-role="attentionSound"></b></span><span>Finished: <b data-role="finishedSound"></b></span></div>
     </article>
     <article class="tile tile-half">
+      <h3>Works where Claude runs.</h3>
+      <p>Prompts from the notch land in the right session, and ↗ brings back its exact tab or window.</p>
+      <div class="terminals"><span>Terminal</span><span>iTerm2</span><span>tmux</span><span>Cursor</span><span>VS Code</span><span>Windsurf</span><span>WezTerm</span></div>
+    </article>
+    <article class="tile tile-narrow">
       <h3>Updates itself.</h3>
-      <p>New version on GitHub? One click.</p>
+      <p>New version on GitHub? An Update pill shows up in the notch.</p>
       <div class="mini-update" id="mini-update">
-        <strong>Update available</strong>
+        <strong></strong>
         <div class="bar"><i></i></div>
         <button class="button button-primary button-small" type="button">Update</button>
       </div>
+    </article>
+    <article class="tile tile-narrow tile-dark">
+      <h3>Drafts wait.</h3>
+      <p>Close the notch mid-sentence. Your prompt is still there, marked with a dot.</p>
+      <div class="draft-demo" aria-hidden="true"><span class="draft-chip"><i></i>💬</span><span class="draft-text">Also add a changelog entry<b></b></span></div>
     </article>
     <article class="tile tile-narrow">
       <h3>Never steals focus.</h3>
       <p>Answer the notch and keep typing where you were.</p>
     </article>
-    <article class="tile tile-wide tile-dark">
+    <article class="tile tile-full tile-dark">
       <h3>Stays on your Mac.</h3>
-      <p>Claude Code and the notch talk over a private local socket. The only network call checks GitHub for updates.</p>
+      <p>Claude Code and the notch talk over a private local socket. Insights are read from your own transcripts. The only network call checks GitHub for updates.</p>
     </article>`;
 
   function wireRiskChecker() {
@@ -75,26 +86,47 @@
     window.addEventListener('blur', () => caps.forEach((c) => c.classList.remove('is-down')));
   }
 
+  /// The same updater as the menu and the notch: update here, and it's done there too.
   function wireUpdate() {
     const box = NG.$('#mini-update');
     const button = NG.$('button', box);
     const label = NG.$('strong', box);
     const bar = NG.$('.bar i', box);
-    button.addEventListener('click', async () => {
-      if (button.disabled) return;
-      button.disabled = true;
-      label.textContent = 'Updating…';
-      bar.style.width = '100%';
-      await NG.sleep(2300);
-      label.textContent = 'Up to date';
-      button.textContent = 'Restarted';
-      await NG.sleep(2600);
-      label.textContent = 'Update available';
-      button.textContent = 'Update';
-      bar.style.transition = 'none';
-      bar.style.width = '0';
-      requestAnimationFrame(() => { bar.style.transition = ''; button.disabled = false; });
+    const sync = () => {
+      const u = NG.updates.state;
+      label.textContent = u.status === 'updating' ? `Updating to ${u.latest}…` : u.status === 'current' ? `Up to date: ${u.installed}` : `${u.latest} is available`;
+      button.textContent = u.status === 'current' ? 'Again' : 'Update';
+      button.disabled = u.status === 'updating';
+      bar.style.width = u.status === 'available' ? '0' : '100%';
+      box.classList.toggle('is-current', u.status === 'current');
+    };
+    button.addEventListener('click', () => {
+      if (NG.updates.state.status === 'current') {
+        bar.style.transition = 'none';
+        NG.updates.reset();
+        requestAnimationFrame(() => (bar.style.transition = ''));
+        return;
+      }
+      NG.updates.update();
     });
+    NG.updates.subscribe(sync);
+    sync();
+  }
+
+  function wireSounds() {
+    const chips = NG.$('#sound-chips');
+    const roles = () => NG.$$('[data-role]').forEach((el) => (el.textContent = NG.settings.get(el.dataset.role)));
+    chips.innerHTML = NG.sounds.names.map((name) => `<button type="button" class="sound-chip" data-sound="${name}"><i></i>${name}</button>`).join('');
+    chips.addEventListener('click', (event) => {
+      const chip = event.target.closest('[data-sound]');
+      if (!chip) return;
+      NG.sounds.play(chip.dataset.sound);
+      chip.classList.remove('is-playing');
+      void chip.offsetWidth;
+      chip.classList.add('is-playing');
+    });
+    NG.settings.subscribe((key) => { if (key.endsWith('Sound')) roles(); });
+    roles();
   }
 
   NG.initDetails = function () {
@@ -104,5 +136,6 @@
     wireRiskChecker();
     wireKeycaps();
     wireUpdate();
+    wireSounds();
   };
 })();

@@ -11,7 +11,8 @@
 
   function wireScrollSpy() {
     const links = NG.$$('[data-spy]');
-    const sections = links.map((link) => NG.$(`#${link.dataset.spy}`)).filter(Boolean);
+    // Every section, so one without a link (details, what's new) clears the highlight.
+    const sections = NG.$$('main > section');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;

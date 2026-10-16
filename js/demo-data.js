@@ -41,6 +41,12 @@
         started: Date.now() - 900000, ended: Date.now() - 765000,
         files: { added: 2, modified: 3, deleted: 1, linesAdded: 246, linesRemoved: 21 },
         calls: [['Bash', 18], ['Read', 26], ['Edit', 14], ['Grep', 9], ['Write', 2], ['WebFetch', 3], ['Agent', 1]],
+        history: [
+          { role: 'user', text: 'Why do payments fail when the bank is slow?' },
+          { role: 'claude', text: 'The client gives up after one 30-second try. A retry with backoff would cover slow banks.' },
+          { role: 'user', text: 'Add retry with backoff to the payment client' },
+          { role: 'claude', text: 'Added retry with exponential backoff. All 13 tests pass.' },
+        ],
         snap: { model: 'Opus', context: 62.4, size: 200000, cost: 3.27, branch: 'feature/refund-webhooks' },
       },
       {
@@ -49,6 +55,7 @@
         tasks: { done: 2, total: 5, titles: ['Read the chart configs', 'Bump the library', 'Updating chart options', 'Fixing the legends', 'Running the visual tests'] },
         finalMessage: 'Upgraded the chart library. 3 charts needed new options; visual tests pass.',
         calls: [['Read', 6], ['Bash', 2], ['mcp__github__get_issue', 2]],
+        history: [{ role: 'user', text: 'Upgrade the chart library' }],
         snap: { model: 'Sonnet', context: 91, size: 1000000, cost: 0.84, branch: 'main' },
       },
       {
@@ -56,6 +63,10 @@
         prompt: 'Tidy up the onboarding guide', steps: 9, started: Date.now() - 420000, ended: Date.now() - 300000,
         files: { added: 0, modified: 6, deleted: 0, linesAdded: 24, linesRemoved: 18 },
         calls: [['Read', 7], ['Edit', 6], ['Grep', 3], ['WebFetch', 6]],
+        history: [
+          { role: 'user', text: 'Tidy up the onboarding guide' },
+          { role: 'claude', text: 'Rewrote the onboarding guide and fixed 6 broken links.' },
+        ],
         snap: null,
       },
     ],
@@ -81,17 +92,6 @@
       'Fixed it, and the tests still pass.',
       'Updated. I left a note in the README.',
     ],
-
-    /// What the water bot says, by mood (the same lines as the app).
-    water: {
-      cheerful: ['Drink water!', 'Sip time!', 'Hydration break!', 'Water o\'clock!'],
-      excited: ['Yes! Grab a sip!', 'Ooh, you\'re here!', 'Let\'s hydrate!'],
-      pleading: ['Pretty please?', 'Just one sip?', 'I carried this up here…'],
-      thirsty: ['I\'m wilting here…', 'Brains are 75% water!', 'Even plants drink…'],
-      delighted: ['Ahh, refreshing!', 'Hydrated!', 'Splash-tastic!'],
-      sleepy: ['Zzz…'],
-      tickled: ['Hehe, that tickles!', 'Boop! Now drink.', 'Hey! Water first!'],
-    },
 
     /// Suggested prompts for the playground, each with its own wording.
     /// Anything a task leaves out falls back to the payments requests above.
